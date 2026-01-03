@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.User">
+        <id column="id" property="id" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="real_name" property="realName" />
+        <result column="email" property="email" />
+        <result column="phone" property="phone" />
+        <result column="avatar" property="avatar" />
+        <result column="role_id" property="roleId" />
+        <result column="role_name" property="roleName" />
+        <result column="status" property="status" />
+        <result column="last_login_time" property="lastLoginTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="BaseResultMap">
+        SELECT u.*, r.name as role_name 
+        FROM user u
+        LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.username = #{username}
+    </select>
+
+    <select id="selectByEmail" resultMap="BaseResultMap">
+        SELECT u.*, r.name as role_name 
+        FROM user u
+        LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.email = #{email}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT u.*, r.name as role_name 
+        FROM user u
+        LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.id = #{id}
+    </select>
+    
+    <select id="selectByPage" resultMap="BaseResultMap">
+        SELECT u.*, r.name as role_name 
+        FROM user u
+        LEFT JOIN role r ON u.role_id = r.id
+        <where>
+            <if test="params.username != null and params.username != ''">
+                AND u.username LIKE CONCAT('%', #{params.username}, '%')
+            </if>
+            <if test="params.roleId != null">
+                AND u.role_id = #{params.roleId}
+            </if>
+            <if test="params.status != null">
+                AND u.status = #{params.status}
+            </if>
+        </where>
+        ORDER BY u.id DESC
+        LIMIT #{params.offset}, #{params.limit}
+    </select>
+    
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM user u
+        <where>
+            <if test="params.username != null and params.username != ''">
+                AND u.username LIKE CONCAT('%', #{params.username}, '%')
+            </if>
+            <if test="params.roleId != null">
+                AND u.role_id = #{params.roleId}
+            </if>
+            <if test="params.status != null">
+                AND u.status = #{params.status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="com.api.model.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user (username, password, real_name, email, phone, avatar, role_id, status)
+        VALUES (#{username}, #{password}, #{realName}, #{email}, #{phone}, #{avatar}, #{roleId}, #{status})
+    </insert>
+
+    <update id="update" parameterType="com.api.model.User">
+        UPDATE user
+        <set>
+            <if test="realName != null">real_name = #{realName},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+    
+    <update id="updateStatus">
+        UPDATE user SET status = #{status} WHERE id = #{id}
+    </update>
+    
+    <update id="updateLastLoginTime">
+        UPDATE user SET last_login_time = NOW() WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+    
+    <delete id="deleteBatch">
+        DELETE FROM user WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.CustomerAppMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.CustomerApp">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="icon" property="icon"/>
+        <result column="color" property="color"/>
+        <result column="app_key" property="appKey"/>
+        <result column="app_secret" property="appSecret"/>
+        <result column="status" property="status"/>
+        <result column="user_id" property="userId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="api_count" property="apiCount"/>
+        <result column="today_call" property="todayCall"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, description, icon, color, app_key, app_secret, status, user_id, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="com.api.model.CustomerApp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO customer_app (name, description, icon, color, app_key, app_secret, status, user_id, create_time, update_time)
+        VALUES (#{name}, #{description}, #{icon}, #{color}, #{appKey}, #{appSecret}, #{status}, #{userId}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById" parameterType="com.api.model.CustomerApp">
+        UPDATE customer_app
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="icon != null and icon != ''">icon = #{icon},</if>
+            <if test="color != null and color != ''">color = #{color},</if>
+            <if test="status != null">status = #{status},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM customer_app WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" parameterType="long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM customer_app
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserId" parameterType="long" resultMap="BaseResultMap">
+        SELECT 
+            ca.*,
+            (SELECT COUNT(*) FROM api_authorization WHERE app_id = ca.id) as api_count,
+            0 as today_call
+        FROM customer_app ca
+        WHERE ca.user_id = #{userId}
+        ORDER BY ca.create_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT 
+            ca.*,
+            (SELECT COUNT(*) FROM api_authorization WHERE app_id = ca.id) as api_count,
+            0 as today_call
+        FROM customer_app ca
+        ORDER BY ca.create_time DESC
+    </select>
+
+    <select id="selectByAppKey" parameterType="string" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM customer_app
+        WHERE app_key = #{appKey}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE customer_app
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

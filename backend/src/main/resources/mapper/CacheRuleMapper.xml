@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.CacheRuleMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.CacheRule">
+        <id column="id" property="id" />
+        <result column="api_id" property="apiId" />
+        <result column="api_name" property="apiName" />
+        <result column="cache_key" property="cacheKey" />
+        <result column="ttl" property="ttl" />
+        <result column="hit_rate" property="hitRate" />
+        <result column="cache_size" property="cacheSize" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT c.*, a.name as api_name 
+        FROM cache_rule c
+        LEFT JOIN api_info a ON c.api_id = a.id
+        ORDER BY c.create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT c.*, a.name as api_name 
+        FROM cache_rule c
+        LEFT JOIN api_info a ON c.api_id = a.id
+        WHERE c.id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.api.model.CacheRule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cache_rule (api_id, cache_key, ttl, hit_rate, cache_size, create_time, update_time)
+        VALUES (#{apiId}, #{cacheKey}, #{ttl}, 0, '0KB', NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.api.model.CacheRule">
+        UPDATE cache_rule
+        SET api_id = #{apiId},
+            cache_key = #{cacheKey},
+            ttl = #{ttl},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM cache_rule WHERE id = #{id}
+    </delete>
+
+</mapper>

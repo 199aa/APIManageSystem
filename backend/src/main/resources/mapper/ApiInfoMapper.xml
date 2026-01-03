@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.ApiInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.ApiInfo">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="path" property="path" />
+        <result column="method" property="method" />
+        <result column="description" property="description" />
+        <result column="platform_id" property="platformId" />
+        <result column="platform_name" property="platformName" />
+        <result column="is_aggregate" property="isAggregate" />
+        <result column="status" property="status" />
+        <result column="request_params" property="requestParams" />
+        <result column="response_example" property="responseExample" />
+        <result column="aggregate_config" property="aggregateConfig" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT a.*, p.name as platform_name FROM api_info a
+        LEFT JOIN platform p ON a.platform_id = p.id
+        <where>
+            <if test="name != null and name != ''">
+                AND a.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="method != null and method != ''">
+                AND a.method = #{method}
+            </if>
+        </where>
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT a.*, p.name as platform_name FROM api_info a
+        LEFT JOIN platform p ON a.platform_id = p.id
+        <where>
+            <if test="platformId != null">
+                AND a.platform_id = #{platformId}
+            </if>
+            <if test="method != null and method != ''">
+                AND a.method = #{method}
+            </if>
+            <if test="name != null and name != ''">
+                AND a.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+        </where>
+        ORDER BY a.update_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM api_info a
+        <where>
+            <if test="platformId != null">
+                AND a.platform_id = #{platformId}
+            </if>
+            <if test="method != null and method != ''">
+                AND a.method = #{method}
+            </if>
+            <if test="name != null and name != ''">
+                AND a.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT a.*, p.name as platform_name FROM api_info a
+        LEFT JOIN platform p ON a.platform_id = p.id
+        WHERE a.id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.api.model.ApiInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_info (name, path, method, description, platform_id, is_aggregate, status, request_params, response_example, create_time, update_time)
+        VALUES (#{name}, #{path}, #{method}, #{description}, #{platformId}, #{isAggregate}, #{status}, #{requestParams}, #{responseExample}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.api.model.ApiInfo">
+        UPDATE api_info
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="method != null">method = #{method},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="isAggregate != null">is_aggregate = #{isAggregate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="requestParams != null">request_params = #{requestParams},</if>
+            <if test="responseExample != null">response_example = #{responseExample},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM api_info WHERE id = #{id}
+    </delete>
+
+    <select id="countTotal" resultType="int">
+        SELECT COUNT(*) FROM api_info
+    </select>
+
+    <select id="countAggregate" resultType="int">
+        SELECT COUNT(*) FROM api_info WHERE is_aggregate = 1
+    </select>
+
+    <select id="countByStatus" resultType="map">
+        SELECT 
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) as normal,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) as error,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as offline
+        FROM api_info
+    </select>
+
+    <select id="selectByPathAndMethod" resultMap="BaseResultMap">
+        SELECT * FROM api_info 
+        WHERE path = #{path} AND method = #{method}
+        LIMIT 1
+    </select>
+    
+    <select id="selectByPath" resultMap="BaseResultMap">
+        SELECT * FROM api_info
+        WHERE path = #{path}
+        LIMIT 1
+    </select>
+    
+    <select id="selectPageByAggregate" resultMap="BaseResultMap">
+        SELECT * FROM api_info
+        WHERE is_aggregate = 1
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+        ORDER BY update_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="countByAggregate" resultType="int">
+        SELECT COUNT(*) FROM api_info
+        WHERE is_aggregate = 1
+        <if test="name != null and name != ''">
+            AND name LIKE CONCAT('%', #{name}, '%')
+        </if>
+    </select>
+</mapper>

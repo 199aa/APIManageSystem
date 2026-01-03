@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.RateLimitMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.RateLimit">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="target_type" property="targetType" />
+        <result column="target_id" property="targetId" />
+        <result column="target_name" property="targetName" />
+        <result column="limit_value" property="limitValue" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM rate_limit ORDER BY create_time DESC
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM rate_limit WHERE id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="com.api.model.RateLimit" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rate_limit (name, target_type, target_id, target_name, limit_value, status, create_time, update_time)
+        VALUES (#{name}, #{targetType}, #{targetId}, #{targetName}, #{limitValue}, #{status}, NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.api.model.RateLimit">
+        UPDATE rate_limit
+        SET name = #{name},
+            target_type = #{targetType},
+            target_id = #{targetId},
+            target_name = #{targetName},
+            limit_value = #{limitValue},
+            status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM rate_limit WHERE id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE rate_limit SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+</mapper>

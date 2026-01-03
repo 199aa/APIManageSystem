@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.ApiCallLogMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.ApiCallLog">
+        <id column="id" property="id" />
+        <result column="api_id" property="apiId" />
+        <result column="api_name" property="apiName" />
+        <result column="api_path" property="apiPath" />
+        <result column="platform_id" property="platformId" />
+        <result column="platform_name" property="platformName" />
+        <result column="status_code" property="statusCode" />
+        <result column="response_time" property="responseTime" />
+        <result column="is_success" property="isSuccess" />
+        <result column="error_msg" property="errorMsg" />
+        <result column="request_params" property="requestParams" />
+        <result column="response_data" property="responseData" />
+        <result column="call_time" property="callTime" />
+    </resultMap>
+
+    <insert id="insert" parameterType="com.api.model.ApiCallLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_call_log (api_id, api_name, api_path, platform_id, platform_name, 
+            status_code, response_time, is_success, error_msg, request_params, response_data, call_time)
+        VALUES (#{apiId}, #{apiName}, #{apiPath}, #{platformId}, #{platformName},
+            #{statusCode}, #{responseTime}, #{isSuccess}, #{errorMsg}, #{requestParams}, #{responseData}, NOW())
+    </insert>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT * FROM api_call_log
+        <where>
+            <if test="apiPath != null and apiPath != ''">
+                AND api_path LIKE CONCAT('%', #{apiPath}, '%')
+            </if>
+            <if test="statusCode != null">
+                AND status_code = #{statusCode}
+            </if>
+            <if test="minTime != null">
+                AND response_time &gt;= #{minTime}
+            </if>
+            <if test="startDate != null">
+                AND call_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND call_time &lt;= #{endDate}
+            </if>
+        </where>
+        ORDER BY call_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*) FROM api_call_log
+        <where>
+            <if test="apiPath != null and apiPath != ''">
+                AND api_path LIKE CONCAT('%', #{apiPath}, '%')
+            </if>
+            <if test="statusCode != null">
+                AND status_code = #{statusCode}
+            </if>
+            <if test="minTime != null">
+                AND response_time &gt;= #{minTime}
+            </if>
+            <if test="startDate != null">
+                AND call_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND call_time &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectRecentErrors" resultMap="BaseResultMap">
+        SELECT * FROM api_call_log 
+        WHERE is_success = 0 
+        ORDER BY call_time DESC 
+        LIMIT #{limit}
+    </select>
+
+    <select id="countTotal" resultType="long">
+        SELECT COUNT(*) FROM api_call_log
+    </select>
+
+    <select id="avgResponseTime" resultType="java.lang.Double">
+        SELECT AVG(response_time) FROM api_call_log WHERE is_success = 1
+    </select>
+
+    <select id="countByHour" resultType="map">
+        SELECT 
+            DATE_FORMAT(call_time, '%H:00') as label,
+            COUNT(*) as value
+        FROM api_call_log
+        WHERE call_time >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+        GROUP BY DATE_FORMAT(call_time, '%Y-%m-%d %H')
+        ORDER BY call_time
+    </select>
+
+    <select id="countByDay" resultType="map">
+        SELECT 
+            DATE_FORMAT(call_time, '%m-%d') as label,
+            COUNT(*) as value
+        FROM api_call_log
+        WHERE call_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY DATE_FORMAT(call_time, '%Y-%m-%d')
+        ORDER BY call_time
+    </select>
+
+    <select id="countByPlatform" resultType="map">
+        SELECT 
+            IFNULL(platform_name, '本地') as name,
+            COUNT(*) as value
+        FROM api_call_log
+        GROUP BY platform_name
+        ORDER BY value DESC
+    </select>
+
+    <!-- 统计今日调用量 -->
+    <select id="countToday" resultType="long">
+        SELECT COUNT(*) FROM api_call_log
+        WHERE DATE(call_time) = CURDATE()
+    </select>
+
+    <!-- 统计今日成功调用量 -->
+    <select id="countTodaySuccess" resultType="long">
+        SELECT COUNT(*) FROM api_call_log
+        WHERE DATE(call_time) = CURDATE() AND is_success = 1
+    </select>
+
+    <!-- 统计昨日调用量 -->
+    <select id="countYesterday" resultType="long">
+        SELECT COUNT(*) FROM api_call_log
+        WHERE DATE(call_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+    </select>
+
+    <!-- 统计昨日成功调用量 -->
+    <select id="countYesterdaySuccess" resultType="long">
+        SELECT COUNT(*) FROM api_call_log
+        WHERE DATE(call_time) = DATE_SUB(CURDATE(), INTERVAL 1 DAY) AND is_success = 1
+    </select>
+
+    <!-- 获取响应最慢的Top N接口 -->
+    <select id="selectSlowestApis" resultType="map">
+        SELECT 
+            api_name as name,
+            api_path as path,
+            platform_name as platform,
+            AVG(response_time) as avgTime,
+            COUNT(*) as callCount
+        FROM api_call_log
+        WHERE call_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND response_time > 0
+        GROUP BY api_id, api_name, api_path, platform_name
+        ORDER BY avgTime DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 获取错误率最高的Top N接口 -->
+    <select id="selectHighestErrorApis" resultType="map">
+        SELECT 
+            api_name as name,
+            api_path as path,
+            platform_name as platform,
+            COUNT(*) as totalCount,
+            SUM(CASE WHEN is_success = 0 THEN 1 ELSE 0 END) as errorCount,
+            ROUND(SUM(CASE WHEN is_success = 0 THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as errorRate
+        FROM api_call_log
+        WHERE call_time >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        GROUP BY api_id, api_name, api_path, platform_name
+        HAVING totalCount >= 10
+        ORDER BY errorRate DESC, totalCount DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>

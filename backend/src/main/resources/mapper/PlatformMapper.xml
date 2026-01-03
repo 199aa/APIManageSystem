@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.PlatformMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.Platform">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="code" property="code" />
+        <result column="icon" property="icon" />
+        <result column="base_url" property="baseUrl" />
+        <result column="description" property="description" />
+        <result column="contact" property="contact" />
+        <result column="phone" property="phone" />
+        <result column="auth_type" property="authType" />
+        <result column="auth_config" property="authConfig" />
+        <result column="health_status" property="healthStatus" />
+        <result column="last_check_time" property="lastCheckTime" />
+        <result column="swagger_url" property="swaggerUrl" />
+        <result column="check_interval" property="checkInterval" />
+        <result column="environment" property="environment" />
+        <result column="timeout" property="timeout" />
+        <result column="retry_count" property="retryCount" />
+        <result column="env_config" property="envConfig" />
+        <result column="status" property="status" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT * FROM platform ORDER BY id
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT * FROM platform ORDER BY id DESC LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM platform WHERE id = #{id}
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT * FROM platform WHERE code = #{code} LIMIT 1
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM platform
+    </select>
+
+    <insert id="insert" parameterType="com.api.model.Platform" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO platform (name, code, icon, base_url, description, contact, phone, 
+            auth_type, auth_config, health_status, swagger_url, check_interval, 
+            environment, timeout, retry_count, env_config, status, create_time, update_time)
+        VALUES (#{name}, #{code}, #{icon}, #{baseUrl}, #{description}, #{contact}, #{phone},
+            #{authType}, #{authConfig}, COALESCE(#{healthStatus}, 'UNKNOWN'), #{swaggerUrl}, 
+            COALESCE(#{checkInterval}, 300), COALESCE(#{environment}, 'PROD'), 
+            COALESCE(#{timeout}, 5000), COALESCE(#{retryCount}, 3), 
+            #{envConfig}, COALESCE(#{status}, 1), NOW(), NOW())
+    </insert>
+
+    <update id="update" parameterType="com.api.model.Platform">
+        UPDATE platform SET
+            name = #{name},
+            code = #{code},
+            icon = #{icon},
+            base_url = #{baseUrl},
+            description = #{description},
+            contact = #{contact},
+            phone = #{phone},
+            auth_type = #{authType},
+            auth_config = #{authConfig},
+            swagger_url = #{swaggerUrl},
+            check_interval = #{checkInterval},
+            environment = #{environment},
+            timeout = #{timeout},
+            retry_count = #{retryCount},
+            env_config = #{envConfig},
+            status = #{status},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM platform WHERE id = #{id}
+    </delete>
+
+    <update id="updateStatus">
+        UPDATE platform SET status = #{status}, update_time = NOW() WHERE id = #{id}
+    </update>
+
+    <select id="countApiByPlatform" resultType="map">
+        SELECT 
+            p.name as name,
+            COUNT(a.id) as value
+        FROM platform p
+        LEFT JOIN api_info a ON p.id = a.platform_id AND a.status = 1
+        WHERE p.status = 1
+        GROUP BY p.id, p.name
+        ORDER BY value DESC
+    </select>
+
+    <update id="updateHealthStatus">
+        UPDATE platform SET 
+            health_status = #{healthStatus}, 
+            last_check_time = NOW(), 
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectAllEnabled" resultMap="BaseResultMap">
+        SELECT * FROM platform WHERE status = 1 ORDER BY id
+    </select>
+
+    <select id="countOfflinePlatforms" resultType="int">
+        SELECT COUNT(*) FROM platform 
+        WHERE status = 1 AND health_status = 'OFFLINE'
+    </select>
+
+</mapper>

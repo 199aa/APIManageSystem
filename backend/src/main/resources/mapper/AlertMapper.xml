@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.AlertMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.Alert">
+        <id column="id" property="id"/>
+        <result column="rule_name" property="ruleName"/>
+        <result column="level" property="level"/>
+        <result column="content" property="content"/>
+        <result column="target" property="target"/>
+        <result column="status" property="status"/>
+        <result column="trace_id" property="traceId"/>
+        <result column="api_id" property="apiId"/>
+        <result column="platform_id" property="platformId"/>
+        <result column="details" property="details"/>
+        <result column="alert_time" property="alertTime"/>
+        <result column="resolved_time" property="resolvedTime"/>
+        <result column="acknowledged_time" property="acknowledgedTime"/>
+        <result column="acknowledged_by" property="acknowledgedBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, rule_name, level, content, target, status, trace_id, api_id, platform_id, 
+        details, alert_time, resolved_time, acknowledged_time, acknowledged_by, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="com.api.model.Alert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO alert (rule_name, level, content, target, status, trace_id, api_id, platform_id, 
+                          details, alert_time, create_time, update_time)
+        VALUES (#{ruleName}, #{level}, #{content}, #{target}, #{status}, #{traceId}, #{apiId}, #{platformId},
+                #{details}, #{alertTime}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById" parameterType="com.api.model.Alert">
+        UPDATE alert
+        <set>
+            <if test="status != null">status = #{status},</if>
+            <if test="resolvedTime != null">resolved_time = #{resolvedTime},</if>
+            <if test="acknowledgedTime != null">acknowledged_time = #{acknowledgedTime},</if>
+            <if test="acknowledgedBy != null">acknowledged_by = #{acknowledgedBy},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectById" parameterType="long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert
+        <where>
+            <if test="level != null and level != ''">AND level = #{level}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="startTime != null">AND alert_time >= #{startTime}</if>
+            <if test="endTime != null">AND alert_time &lt;= #{endTime}</if>
+        </where>
+        ORDER BY alert_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="countByCondition" resultType="int">
+        SELECT COUNT(*)
+        FROM alert
+        <where>
+            <if test="level != null and level != ''">AND level = #{level}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="startTime != null">AND alert_time >= #{startTime}</if>
+            <if test="endTime != null">AND alert_time &lt;= #{endTime}</if>
+        </where>
+    </select>
+
+    <select id="selectActiveAlerts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert
+        WHERE status = 'firing'
+        ORDER BY alert_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countByLevel" resultType="int">
+        SELECT COUNT(*)
+        FROM alert
+        WHERE level = #{level}
+        <if test="status != null and status != ''">AND status = #{status}</if>
+    </select>
+
+    <update id="batchAcknowledge">
+        UPDATE alert
+        SET status = 'acknowledged',
+            acknowledged_by = #{acknowledgedBy},
+            acknowledged_time = #{acknowledgedTime},
+            update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateStatus">
+        UPDATE alert
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

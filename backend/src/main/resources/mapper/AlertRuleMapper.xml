@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.AlertRuleMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.AlertRule">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="level" property="level"/>
+        <result column="condition" property="condition"/>
+        <result column="target" property="target"/>
+        <result column="target_id" property="targetId"/>
+        <result column="status" property="status"/>
+        <result column="notify_channels" property="notifyChannels"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, name, type, level, `condition`, target, target_id, status, notify_channels, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="com.api.model.AlertRule" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO alert_rule (name, type, level, `condition`, target, target_id, status, notify_channels, create_time, update_time)
+        VALUES (#{name}, #{type}, #{level}, #{condition}, #{target}, #{targetId}, #{status}, #{notifyChannels}, NOW(), NOW())
+    </insert>
+
+    <update id="updateById" parameterType="com.api.model.AlertRule">
+        UPDATE alert_rule
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="condition != null">`condition` = #{condition},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="notifyChannels != null">notify_channels = #{notifyChannels},</if>
+            update_time = NOW()
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM alert_rule WHERE id = #{id}
+    </delete>
+
+    <select id="selectById" parameterType="long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert_rule
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectActiveRules" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert_rule
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM alert_rule
+        ORDER BY create_time DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE alert_rule
+        SET status = #{status}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

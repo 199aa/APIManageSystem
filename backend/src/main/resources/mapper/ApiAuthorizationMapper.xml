@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.ApiAuthorizationMapper">
+
+    <insert id="insert">
+        INSERT INTO api_authorization (app_id, api_id, create_time)
+        VALUES (#{appId}, #{apiId}, NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM api_authorization
+        WHERE app_id = #{appId} AND api_id = #{apiId}
+    </delete>
+
+    <delete id="deleteByAppId" parameterType="long">
+        DELETE FROM api_authorization WHERE app_id = #{appId}
+    </delete>
+
+    <select id="selectApiIdsByAppId" parameterType="long" resultType="long">
+        SELECT api_id FROM api_authorization WHERE app_id = #{appId}
+    </select>
+
+    <select id="countByAppIdAndApiId" resultType="int">
+        SELECT COUNT(*) FROM api_authorization
+        WHERE app_id = #{appId} AND api_id = #{apiId}
+    </select>
+
+</mapper>

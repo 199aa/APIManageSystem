@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.api.mapper.BlacklistWhitelistMapper">
+
+    <resultMap id="BaseResultMap" type="com.api.model.BlacklistWhitelist">
+        <id column="id" property="id" />
+        <result column="ip_address" property="ipAddress" />
+        <result column="list_type" property="listType" />
+        <result column="description" property="description" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <select id="selectByType" resultMap="BaseResultMap">
+        SELECT * FROM blacklist_whitelist WHERE list_type = #{listType} ORDER BY create_time DESC
+    </select>
+
+    <delete id="deleteByType">
+        DELETE FROM blacklist_whitelist WHERE list_type = #{listType}
+    </delete>
+
+    <insert id="batchInsert">
+        INSERT INTO blacklist_whitelist (ip_address, list_type, description, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.ipAddress}, #{item.listType}, #{item.description}, NOW(), NOW())
+        </foreach>
+    </insert>
+
+</mapper>

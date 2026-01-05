@@ -211,16 +211,7 @@ export default {
     async loadAllData() {
       this.loading = true
       try {
-        await Promise.all([
-          this.loadCoreStats(),
-          this.loadTrendData(),
-          this.loadHealthData(),
-          this.loadPlatformData(),
-          this.loadErrorLogs(),
-          this.loadSlowApis(),
-          this.loadErrorApis(),
-          this.loadActiveAlerts()
-        ])
+        await Promise.all([this.loadCoreStats(), this.loadTrendData(), this.loadHealthData(), this.loadPlatformData(), this.loadErrorLogs(), this.loadSlowApis(), this.loadErrorApis(), this.loadActiveAlerts()])
         this.$nextTick(() => {
           this.initTrendChart()
           this.initHealthChart()
@@ -259,9 +250,9 @@ export default {
       } catch (error) {
         console.error('加载趋势数据失败:', error)
         // 使用空数据
-        const hours = this.timeRange === '24h' ? 24 : (this.timeRange === '7d' ? 7 : 30)
+        const hours = this.timeRange === '24h' ? 24 : this.timeRange === '7d' ? 7 : 30
         this.trendData = {
-          labels: Array.from({ length: hours }, (_, i) => this.timeRange === '24h' ? `${i}:00` : `Day ${i + 1}`),
+          labels: Array.from({ length: hours }, (_, i) => (this.timeRange === '24h' ? `${i}:00` : `Day ${i + 1}`)),
           values: Array(hours).fill(0),
           successValues: Array(hours).fill(0)
         }
@@ -307,7 +298,7 @@ export default {
       try {
         const res = await getSlowestApis(5)
         if (res.code === 200) {
-          this.slowApis = (res.data || []).map(item => ({
+          this.slowApis = (res.data || []).map((item) => ({
             name: item.name || item.path,
             platform: item.platform || '本地',
             avgTime: Math.round(item.avgTime || 0)
@@ -322,7 +313,7 @@ export default {
       try {
         const res = await getHighestErrorApis(5)
         if (res.code === 200) {
-          this.errorApis = (res.data || []).map(item => ({
+          this.errorApis = (res.data || []).map((item) => ({
             name: item.name || item.path,
             totalCount: item.totalCount || 0,
             errorCount: item.errorCount || 0,
@@ -388,8 +379,15 @@ export default {
             itemStyle: { color: '#667eea' },
             areaStyle: {
               color: {
-                type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                colorStops: [{ offset: 0, color: 'rgba(102, 126, 234, 0.3)' }, { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }]
+                type: 'linear',
+                x: 0,
+                y: 0,
+                x2: 0,
+                y2: 1,
+                colorStops: [
+                  { offset: 0, color: 'rgba(102, 126, 234, 0.3)' },
+                  { offset: 1, color: 'rgba(102, 126, 234, 0.05)' }
+                ]
               }
             }
           },
@@ -397,7 +395,7 @@ export default {
             name: '成功调用',
             type: 'line',
             smooth: true,
-            data: this.trendData.successValues || this.trendData.values.map(v => Math.floor(v * 0.95)),
+            data: this.trendData.successValues || this.trendData.values.map((v) => Math.floor(v * 0.95)),
             lineStyle: { color: '#67c23a', width: 2 },
             itemStyle: { color: '#67c23a' }
           }
@@ -422,18 +420,20 @@ export default {
           top: '38%',
           style: { text: successRate + '%', fontSize: 24, fontWeight: 'bold', fill: '#67c23a', textAlign: 'center' }
         },
-        series: [{
-          type: 'pie',
-          radius: ['55%', '75%'],
-          center: ['50%', '45%'],
-          avoidLabelOverlap: false,
-          label: { show: false },
-          data: [
-            { value: this.healthData.normal, name: '正常', itemStyle: { color: '#67c23a' } },
-            { value: this.healthData.error, name: '异常', itemStyle: { color: '#f56c6c' } },
-            { value: this.healthData.offline, name: '离线', itemStyle: { color: '#909399' } }
-          ]
-        }]
+        series: [
+          {
+            type: 'pie',
+            radius: ['55%', '75%'],
+            center: ['50%', '45%'],
+            avoidLabelOverlap: false,
+            label: { show: false },
+            data: [
+              { value: this.healthData.normal, name: '正常', itemStyle: { color: '#67c23a' } },
+              { value: this.healthData.error, name: '异常', itemStyle: { color: '#f56c6c' } },
+              { value: this.healthData.offline, name: '离线', itemStyle: { color: '#909399' } }
+            ]
+          }
+        ]
       }
       this.healthChart.setOption(option)
     },
@@ -448,19 +448,21 @@ export default {
         backgroundColor: 'transparent',
         tooltip: { trigger: 'item', backgroundColor: 'rgba(25, 25, 40, 0.9)', textStyle: { color: '#fff' } },
         legend: { orient: 'vertical', right: 10, top: 'center', textStyle: { color: '#8b8ba7', fontSize: 11 } },
-        series: [{
-          type: 'pie',
-          radius: ['40%', '65%'],
-          center: ['35%', '50%'],
-          label: { show: false },
-          data: data,
-          itemStyle: {
-            color: (params) => {
-              const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe']
-              return colors[params.dataIndex % colors.length]
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '65%'],
+            center: ['35%', '50%'],
+            label: { show: false },
+            data: data,
+            itemStyle: {
+              color: (params) => {
+                const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe']
+                return colors[params.dataIndex % colors.length]
+              }
             }
           }
-        }]
+        ]
       }
       this.platformChart.setOption(option)
     },
@@ -533,13 +535,26 @@ export default {
     border-radius: 12px;
     transition: all 0.3s;
 
-    &:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
 
-    &.primary .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
-    &.success .stat-icon { background: linear-gradient(135deg, #67c23a, #5daf34); }
-    &.warning .stat-icon { background: linear-gradient(135deg, #e6a23c, #f5af19); }
-    &.danger .stat-icon { background: linear-gradient(135deg, #f56c6c, #eb4d4d); }
-    &.info .stat-icon { background: linear-gradient(135deg, #909399, #6b6b80); }
+    &.primary .stat-icon {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+    &.success .stat-icon {
+      background: linear-gradient(135deg, #67c23a, #5daf34);
+    }
+    &.warning .stat-icon {
+      background: linear-gradient(135deg, #e6a23c, #f5af19);
+    }
+    &.danger .stat-icon {
+      background: linear-gradient(135deg, #f56c6c, #eb4d4d);
+    }
+    &.info .stat-icon {
+      background: linear-gradient(135deg, #909399, #6b6b80);
+    }
 
     .stat-icon {
       width: 50px;
@@ -549,20 +564,40 @@ export default {
       align-items: center;
       justify-content: center;
       margin-right: 15px;
-      i { font-size: 24px; color: #fff; }
+      i {
+        font-size: 24px;
+        color: #fff;
+      }
     }
 
     .stat-content {
       flex: 1;
-      .stat-value { font-size: 24px; font-weight: 600; color: #fff; }
-      .stat-label { font-size: 13px; color: #8b8ba7; margin-top: 4px; }
+      .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .stat-label {
+        font-size: 13px;
+        color: #8b8ba7;
+        margin-top: 4px;
+      }
       .stat-trend {
         margin-top: 6px;
         font-size: 12px;
-        i { margin-right: 2px; }
-        .up { color: #67c23a; }
-        .down { color: #f56c6c; }
-        .vs { color: #6b6b80; margin-left: 5px; }
+        i {
+          margin-right: 2px;
+        }
+        .up {
+          color: #67c23a;
+        }
+        .down {
+          color: #f56c6c;
+        }
+        .vs {
+          color: #6b6b80;
+          margin-left: 5px;
+        }
       }
     }
   }
@@ -585,13 +620,23 @@ export default {
       align-items: center;
       justify-content: center;
       margin-right: 15px;
-      i { color: #fff; font-size: 18px; }
+      i {
+        color: #fff;
+        font-size: 18px;
+      }
     }
 
     .alert-banner-content {
       flex: 1;
-      .alert-count { color: #f56c6c; font-weight: 600; margin-right: 15px; }
-      .alert-latest { color: #a8b2d1; font-size: 13px; }
+      .alert-count {
+        color: #f56c6c;
+        font-weight: 600;
+        margin-right: 15px;
+      }
+      .alert-latest {
+        color: #a8b2d1;
+        font-size: 13px;
+      }
     }
   }
 
@@ -636,17 +681,28 @@ export default {
       font-size: 13px;
       color: #667eea;
       cursor: pointer;
-      &:hover { text-decoration: underline; }
+      &:hover {
+        text-decoration: underline;
+      }
     }
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
   }
 
-  .chart-container { height: 280px; }
-  .small-chart { height: 160px; }
+  .chart-container {
+    height: 280px;
+  }
+  .small-chart {
+    height: 160px;
+  }
 
   .error-list {
     .error-item {
@@ -655,7 +711,9 @@ export default {
       padding: 12px 0;
       border-bottom: 1px solid rgba(102, 126, 234, 0.1);
 
-      &:last-child { border-bottom: none; }
+      &:last-child {
+        border-bottom: none;
+      }
 
       .error-time {
         width: 70px;
@@ -673,10 +731,17 @@ export default {
           align-items: center;
           gap: 8px;
           margin-bottom: 4px;
-          .api-path { color: #a8b2d1; font-size: 13px; font-family: monospace; }
+          .api-path {
+            color: #a8b2d1;
+            font-size: 13px;
+            font-family: monospace;
+          }
         }
 
-        .error-msg { color: #8b8ba7; font-size: 12px; }
+        .error-msg {
+          color: #8b8ba7;
+          font-size: 12px;
+        }
       }
     }
   }
@@ -696,13 +761,25 @@ export default {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        &.healthy { background: #67c23a; }
-        &.warning { background: #f56c6c; }
-        &.offline { background: #909399; }
+        &.healthy {
+          background: #67c23a;
+        }
+        &.warning {
+          background: #f56c6c;
+        }
+        &.offline {
+          background: #909399;
+        }
       }
 
-      .health-label { color: #8b8ba7; font-size: 12px; }
-      .health-value { color: #fff; font-weight: 600; }
+      .health-label {
+        color: #8b8ba7;
+        font-size: 12px;
+      }
+      .health-value {
+        color: #fff;
+        font-weight: 600;
+      }
     }
   }
 
@@ -713,7 +790,9 @@ export default {
       padding: 10px 0;
       border-bottom: 1px solid rgba(102, 126, 234, 0.1);
 
-      &:last-child { border-bottom: none; }
+      &:last-child {
+        border-bottom: none;
+      }
 
       .rank {
         width: 24px;
@@ -728,23 +807,45 @@ export default {
         background: rgba(102, 126, 234, 0.2);
         color: #8b8ba7;
 
-        &.rank-1 { background: linear-gradient(135deg, #f5af19, #f12711); color: #fff; }
-        &.rank-2 { background: linear-gradient(135deg, #c0c0c0, #909399); color: #fff; }
-        &.rank-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; }
+        &.rank-1 {
+          background: linear-gradient(135deg, #f5af19, #f12711);
+          color: #fff;
+        }
+        &.rank-2 {
+          background: linear-gradient(135deg, #c0c0c0, #909399);
+          color: #fff;
+        }
+        &.rank-3 {
+          background: linear-gradient(135deg, #cd7f32, #8b4513);
+          color: #fff;
+        }
       }
 
       .api-info {
         flex: 1;
-        .api-name { color: #fff; font-size: 13px; }
-        .api-platform { color: #6b6b80; font-size: 11px; margin-top: 2px; }
+        .api-name {
+          color: #fff;
+          font-size: 13px;
+        }
+        .api-platform {
+          color: #6b6b80;
+          font-size: 11px;
+          margin-top: 2px;
+        }
       }
 
       .api-time {
         font-weight: 600;
         font-family: monospace;
-        &.time-danger { color: #f56c6c; }
-        &.time-warning { color: #e6a23c; }
-        &.time-normal { color: #67c23a; }
+        &.time-danger {
+          color: #f56c6c;
+        }
+        &.time-warning {
+          color: #e6a23c;
+        }
+        &.time-normal {
+          color: #67c23a;
+        }
       }
     }
   }
@@ -756,7 +857,9 @@ export default {
       padding: 10px 0;
       border-bottom: 1px solid rgba(102, 126, 234, 0.1);
 
-      &:last-child { border-bottom: none; }
+      &:last-child {
+        border-bottom: none;
+      }
 
       .rank {
         width: 24px;
@@ -771,21 +874,38 @@ export default {
         background: rgba(102, 126, 234, 0.2);
         color: #8b8ba7;
 
-        &.rank-1 { background: linear-gradient(135deg, #f5af19, #f12711); color: #fff; }
-        &.rank-2 { background: linear-gradient(135deg, #c0c0c0, #909399); color: #fff; }
-        &.rank-3 { background: linear-gradient(135deg, #cd7f32, #8b4513); color: #fff; }
+        &.rank-1 {
+          background: linear-gradient(135deg, #f5af19, #f12711);
+          color: #fff;
+        }
+        &.rank-2 {
+          background: linear-gradient(135deg, #c0c0c0, #909399);
+          color: #fff;
+        }
+        &.rank-3 {
+          background: linear-gradient(135deg, #cd7f32, #8b4513);
+          color: #fff;
+        }
       }
 
       .api-info {
         flex: 1;
-        .api-name { color: #fff; font-size: 13px; margin-bottom: 4px; }
+        .api-name {
+          color: #fff;
+          font-size: 13px;
+          margin-bottom: 4px;
+        }
         .api-stats {
           display: flex;
           gap: 10px;
           font-size: 11px;
           color: #6b6b80;
-          .total-count { color: #8b8ba7; }
-          .error-count { color: #f56c6c; }
+          .total-count {
+            color: #8b8ba7;
+          }
+          .error-count {
+            color: #f56c6c;
+          }
         }
       }
 
@@ -793,9 +913,15 @@ export default {
         font-weight: 600;
         font-family: monospace;
         font-size: 14px;
-        &.rate-danger { color: #f56c6c; }
-        &.rate-warning { color: #e6a23c; }
-        &.rate-normal { color: #67c23a; }
+        &.rate-danger {
+          color: #f56c6c;
+        }
+        &.rate-warning {
+          color: #e6a23c;
+        }
+        &.rate-normal {
+          color: #67c23a;
+        }
       }
     }
   }
@@ -811,7 +937,11 @@ export default {
       border: 1px solid rgba(102, 126, 234, 0.3);
       color: #a8b2d1;
 
-      &:hover { background: rgba(102, 126, 234, 0.2); border-color: #667eea; color: #fff; }
+      &:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: #667eea;
+        color: #fff;
+      }
     }
   }
 

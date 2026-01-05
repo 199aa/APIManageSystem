@@ -72,12 +72,7 @@
         </el-form-item>
         <el-form-item label="图标">
           <div class="icon-select">
-            <div
-              v-for="icon in iconOptions"
-              :key="icon.value"
-              class="icon-item"
-              :class="{ active: form.icon === icon.value }"
-              @click="form.icon = icon.value">
+            <div v-for="icon in iconOptions" :key="icon.value" class="icon-item" :class="{ active: form.icon === icon.value }" @click="form.icon = icon.value">
               <i :class="icon.value"></i>
             </div>
           </div>
@@ -114,16 +109,7 @@ export default {
       rules: {
         name: [{ required: true, message: '请输入应用名称', trigger: 'blur' }]
       },
-      iconOptions: [
-        { value: 'el-icon-s-platform' },
-        { value: 'el-icon-s-order' },
-        { value: 'el-icon-s-data' },
-        { value: 'el-icon-user' },
-        { value: 'el-icon-s-goods' },
-        { value: 'el-icon-s-marketing' },
-        { value: 'el-icon-s-finance' },
-        { value: 'el-icon-s-claim' }
-      ]
+      iconOptions: [{ value: 'el-icon-s-platform' }, { value: 'el-icon-s-order' }, { value: 'el-icon-s-data' }, { value: 'el-icon-user' }, { value: 'el-icon-s-goods' }, { value: 'el-icon-s-marketing' }, { value: 'el-icon-s-finance' }, { value: 'el-icon-s-claim' }]
     }
   },
   mounted() {
@@ -170,7 +156,7 @@ export default {
           break
         case 'delete':
           this.$confirm('确定要删除该应用吗？删除后凭证将失效', '提示', { type: 'warning' })
-            .then(async () => { 
+            .then(async () => {
               await this.handleDelete(app.id)
             })
             .catch(() => {})
@@ -208,7 +194,7 @@ export default {
     },
     // 提交表单
     async handleSubmit() {
-      this.$refs.form.validate(async valid => {
+      this.$refs.form.validate(async (valid) => {
         if (valid) {
           try {
             let res
@@ -219,7 +205,7 @@ export default {
               // 创建应用
               res = await createApp(this.form)
             }
-            
+
             if (res.code === 200) {
               this.$message.success(this.form.id ? '更新成功' : '创建成功')
               this.dialogVisible = false
@@ -249,7 +235,11 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    h2 { color: #fff; margin: 0; font-size: 20px; }
+    h2 {
+      color: #fff;
+      margin: 0;
+      font-size: 20px;
+    }
   }
 
   .app-cards {
@@ -292,20 +282,33 @@ export default {
         align-items: center;
         justify-content: center;
         margin-right: 15px;
-        i { font-size: 24px; color: #fff; }
+        i {
+          font-size: 24px;
+          color: #fff;
+        }
       }
 
       .app-info {
         flex: 1;
-        h3 { color: #fff; margin: 0 0 5px; font-size: 16px; }
-        p { color: #8b8ba7; margin: 0; font-size: 13px; }
+        h3 {
+          color: #fff;
+          margin: 0 0 5px;
+          font-size: 16px;
+        }
+        p {
+          color: #8b8ba7;
+          margin: 0;
+          font-size: 13px;
+        }
       }
 
       .el-dropdown-link {
         color: #8b8ba7;
         cursor: pointer;
         padding: 5px;
-        &:hover { color: #667eea; }
+        &:hover {
+          color: #667eea;
+        }
       }
     }
 
@@ -318,11 +321,22 @@ export default {
         padding: 8px 0;
         border-bottom: 1px dashed rgba(102, 126, 234, 0.1);
 
-        &:last-child { border-bottom: none; }
+        &:last-child {
+          border-bottom: none;
+        }
 
-        .label { color: #8b8ba7; font-size: 13px; }
-        .value { color: #fff; font-size: 13px; }
-        .highlight { color: #667eea; font-weight: 600; }
+        .label {
+          color: #8b8ba7;
+          font-size: 13px;
+        }
+        .value {
+          color: #fff;
+          font-size: 13px;
+        }
+        .highlight {
+          color: #667eea;
+          font-weight: 600;
+        }
       }
     }
 
@@ -347,7 +361,10 @@ export default {
       justify-content: center;
       height: 200px;
       color: #667eea;
-      i { font-size: 48px; margin-bottom: 15px; }
+      i {
+        font-size: 48px;
+        margin-bottom: 15px;
+      }
     }
   }
 }
@@ -368,14 +385,21 @@ export default {
     cursor: pointer;
     transition: all 0.2s;
 
-    i { font-size: 20px; color: #8b8ba7; }
+    i {
+      font-size: 20px;
+      color: #8b8ba7;
+    }
 
-    &:hover { border-color: #667eea; }
+    &:hover {
+      border-color: #667eea;
+    }
 
     &.active {
       background: rgba(102, 126, 234, 0.2);
       border-color: #667eea;
-      i { color: #667eea; }
+      i {
+        color: #667eea;
+      }
     }
   }
 }
@@ -383,10 +407,17 @@ export default {
 ::v-deep .el-dialog {
   background: #1a1a2e;
   border: 1px solid rgba(102, 126, 234, 0.3);
-  .el-dialog__header { border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-  .el-dialog__title { color: #fff; }
-  .el-form-item__label { color: #8b8ba7; }
-  .el-input__inner, .el-textarea__inner {
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  }
+  .el-dialog__title {
+    color: #fff;
+  }
+  .el-form-item__label {
+    color: #8b8ba7;
+  }
+  .el-input__inner,
+  .el-textarea__inner {
     background: rgba(35, 35, 55, 0.8);
     border-color: rgba(102, 126, 234, 0.3);
     color: #fff;

@@ -19,7 +19,7 @@ export default {
 
     if (value) {
       const requiredPermissions = Array.isArray(value) ? value : [value]
-      const hasPermission = requiredPermissions.some(permission => {
+      const hasPermission = requiredPermissions.some((permission) => {
         return permissions.includes(permission)
       })
 

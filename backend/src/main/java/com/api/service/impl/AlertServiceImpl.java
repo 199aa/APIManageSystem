@@ -16,13 +16,13 @@ import java.util.Map;
 
 @Service
 public class AlertServiceImpl implements AlertService {
-    
+
     @Autowired
     private AlertMapper alertMapper;
-    
+
     @Autowired
     private AlertRuleMapper alertRuleMapper;
-    
+
     @Override
     @Transactional
     public Alert createAlert(Alert alert) {
@@ -35,27 +35,28 @@ public class AlertServiceImpl implements AlertService {
         alertMapper.insert(alert);
         return alert;
     }
-    
+
     @Override
-    public Map<String, Object> getAlertList(int page, int pageSize, String level, String status, Date startTime, Date endTime) {
+    public Map<String, Object> getAlertList(int page, int pageSize, String level, String status, Date startTime,
+            Date endTime) {
         int offset = (page - 1) * pageSize;
         List<Alert> list = alertMapper.selectPage(offset, pageSize, level, status, startTime, endTime);
         int total = alertMapper.countByCondition(level, status, startTime, endTime);
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("list", list);
         result.put("total", total);
         result.put("page", page);
         result.put("pageSize", pageSize);
-        
+
         return result;
     }
-    
+
     @Override
     public List<Alert> getActiveAlerts(int limit) {
         return alertMapper.selectActiveAlerts(limit);
     }
-    
+
     @Override
     public Map<String, Integer> getAlertStats() {
         Map<String, Integer> stats = new HashMap<>();
@@ -65,7 +66,7 @@ public class AlertServiceImpl implements AlertService {
         stats.put("resolved", alertMapper.countByLevel(null, "resolved"));
         return stats;
     }
-    
+
     @Override
     @Transactional
     public void acknowledgeAlert(Long id, String acknowledgedBy) {
@@ -76,7 +77,7 @@ public class AlertServiceImpl implements AlertService {
         alert.setAcknowledgedTime(new Date());
         alertMapper.updateById(alert);
     }
-    
+
     @Override
     @Transactional
     public void batchAcknowledgeAlerts(List<Long> ids, String acknowledgedBy) {
@@ -84,7 +85,7 @@ public class AlertServiceImpl implements AlertService {
             alertMapper.batchAcknowledge(ids, acknowledgedBy, new Date());
         }
     }
-    
+
     @Override
     @Transactional
     public void resolveAlert(Long id) {
@@ -94,7 +95,7 @@ public class AlertServiceImpl implements AlertService {
         alert.setResolvedTime(new Date());
         alertMapper.updateById(alert);
     }
-    
+
     @Override
     @Transactional
     public AlertRule createAlertRule(AlertRule rule) {
@@ -104,25 +105,25 @@ public class AlertServiceImpl implements AlertService {
         alertRuleMapper.insert(rule);
         return rule;
     }
-    
+
     @Override
     @Transactional
     public AlertRule updateAlertRule(AlertRule rule) {
         alertRuleMapper.updateById(rule);
         return alertRuleMapper.selectById(rule.getId());
     }
-    
+
     @Override
     @Transactional
     public void deleteAlertRule(Long id) {
         alertRuleMapper.deleteById(id);
     }
-    
+
     @Override
     public List<AlertRule> getAllAlertRules() {
         return alertRuleMapper.selectAll();
     }
-    
+
     @Override
     @Transactional
     public void updateRuleStatus(Long id, Integer status) {

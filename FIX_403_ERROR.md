@@ -1,8 +1,9 @@
-# 403错误修复说明
+# 403 错误修复说明
 
 ## 🐛 问题现象
 
 开发人员、运维人员等角色点击左侧菜单时，浏览器控制台显示：
+
 ```
 GET http://localhost:8080/api/aggregate/list?page=1&pageSize=10 403 (Forbidden)
 Request failed with status code 403
@@ -10,20 +11,20 @@ Request failed with status code 403
 
 ## 🔍 问题原因
 
-后端`PermissionInterceptor.java`中的API路径权限映射使用的是**旧的权限代码**，与数据库中的实际权限代码不匹配。
+后端`PermissionInterceptor.java`中的 API 路径权限映射使用的是**旧的权限代码**，与数据库中的实际权限代码不匹配。
 
 ### 对比说明
 
-| 场景 | 后端拦截器（修复前） | 数据库中的权限 | 结果 |
-|------|---------------------|---------------|------|
+| 场景     | 后端拦截器（修复前） | 数据库中的权限  | 结果            |
+| -------- | -------------------- | --------------- | --------------- |
 | 聚合接口 | `orchestration:list` | `orchestration` | ❌ 不匹配 → 403 |
-| 调用日志 | `monitor:log` | `monitor` | ❌ 不匹配 → 403 |
-| 限流策略 | `governance:list` | `governance` | ❌ 不匹配 → 403 |
+| 调用日志 | `monitor:log`        | `monitor`       | ❌ 不匹配 → 403 |
+| 限流策略 | `governance:list`    | `governance`    | ❌ 不匹配 → 403 |
 
 ### 权限检查流程
 
 ```
-用户点击菜单 
+用户点击菜单
   → 前端发送API请求
   → 后端PermissionInterceptor拦截
   → 检查用户权限列表：['api', 'monitor', 'orchestration', 'platform']
@@ -36,7 +37,7 @@ Request failed with status code 403
 
 ### 统一权限检查策略
 
-**模块级权限控制**：API访问只检查**模块级权限**（如 `api`, `platform`, `monitor`），不检查具体功能权限。
+**模块级权限控制**：API 访问只检查**模块级权限**（如 `api`, `platform`, `monitor`），不检查具体功能权限。
 
 - ✅ 拥有 `api` 权限 → 可以访问所有 `/api-info/*` 接口
 - ✅ 拥有 `monitor` 权限 → 可以访问所有 `/monitor/*` 接口
@@ -78,21 +79,25 @@ mvn spring-boot:run
 ## 🎯 验证方法
 
 ### 1. 清除浏览器缓存
+
 - 按 `Ctrl + Shift + Delete`
-- 清除缓存和Cookie
+- 清除缓存和 Cookie
 - 或使用无痕模式
 
 ### 2. 重新登录测试
 
 **开发人员账号** (dev / dev123)：
+
 - ✅ 点击"服务编排" → 应该正常显示聚合接口列表
 - ✅ 点击"监控中心" → 应该正常显示调用日志
 
 **运维人员账号** (ops / ops123)：
+
 - ✅ 点击"治理中心" → 应该正常显示限流、黑白名单、缓存配置
 - ✅ 点击"监控中心" → 应该正常显示日志和告警
 
 ### 3. 浏览器控制台检查
+
 - 打开开发者工具 (F12)
 - 切换到 Network 标签
 - 点击菜单
@@ -131,22 +136,26 @@ mvn spring-boot:run
 ## ⚠️ 注意事项
 
 ### 1. 后端服务必须重启
-修改Java代码后，必须重启Spring Boot应用才能生效。
+
+修改 Java 代码后，必须重启 Spring Boot 应用才能生效。
 
 ### 2. 用户需要重新登录
-- 用户权限列表存储在localStorage中
+
+- 用户权限列表存储在 localStorage 中
 - 重启后端不会影响已登录用户
 - 但建议清除浏览器缓存后重新登录
 
 ### 3. 模块级权限的设计考虑
 
 **为什么使用模块级权限？**
+
 - 简化后端权限验证逻辑
 - 减少配置维护成本
 - 前端已有细粒度按钮控制
 
 **是否需要更细粒度的后端验证？**
-如果需要后端严格验证每个操作（如create、delete），需要：
+如果需要后端严格验证每个操作（如 create、delete），需要：
+
 1. 修改`PermissionInterceptor`映射关系
 2. 确保数据库中有对应的功能级权限
 3. 为每个角色配置详细的功能权限
@@ -154,12 +163,14 @@ mvn spring-boot:run
 ## 🔄 后续增强建议
 
 1. **注解式权限控制**
+
    ```java
    @PreAuthorize("hasPermission('api:create')")
    public Result createApi(@RequestBody ApiInfo api) { ... }
    ```
 
 2. **权限配置中心化**
+
    - 将权限映射关系移到配置文件或数据库
    - 支持动态修改权限规则
 
@@ -170,5 +181,5 @@ mvn spring-boot:run
 ---
 
 **修复时间**：2026-01-04  
-**影响范围**：所有非超级管理员角色的API访问  
+**影响范围**：所有非超级管理员角色的 API 访问  
 **修复状态**：代码已修复，待重启服务

@@ -157,7 +157,7 @@ export function filterMenus(menus, permissions, roleId) {
     return menus
   }
 
-  return menus.filter(menu => {
+  return menus.filter((menu) => {
     // 如果菜单不需要权限，则显示
     if (!menu.permission) {
       return true
@@ -167,7 +167,7 @@ export function filterMenus(menus, permissions, roleId) {
     if (permissions.includes(menu.permission)) {
       // 如果有子菜单，递归过滤
       if (menu.children && menu.children.length > 0) {
-        menu.children = menu.children.filter(child => {
+        menu.children = menu.children.filter((child) => {
           return !child.permission || permissions.includes(child.permission)
         })
       }

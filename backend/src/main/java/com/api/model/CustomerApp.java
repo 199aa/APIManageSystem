@@ -19,7 +19,7 @@ public class CustomerApp implements Serializable {
     private Long userId; // 所属用户ID
     private Date createTime; // 创建时间
     private Date updateTime; // 更新时间
-    
+
     // 统计字段（不在数据库中）
     private Integer apiCount; // 授权接口数量
     private Integer todayCall; // 今日调用次数

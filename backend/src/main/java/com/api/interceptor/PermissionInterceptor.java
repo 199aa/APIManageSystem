@@ -38,7 +38,8 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private ObjectMapper objectMapper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         // 只拦截Controller方法
         if (!(handler instanceof HandlerMethod)) {
             return true;
@@ -46,7 +47,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         // 获取请求路径
         String requestUri = request.getRequestURI();
-        
+
         // 从请求头获取token
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -56,7 +57,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         String token = authHeader.substring(7);
         String userId = jwtUtil.getUserIdFromToken(token);
-        
+
         // 获取用户信息
         User user = userService.getUserById(Long.parseLong(userId));
         if (user == null) {
@@ -77,7 +78,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
 
         // 检查是否有权限访问该路径
         boolean hasPermission = checkPermission(requestUri, request.getMethod(), permissionCodes);
-        
+
         if (!hasPermission) {
             sendJsonResponse(response, 403, "无权限访问");
             return false;
@@ -93,14 +94,14 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private boolean checkPermission(String uri, String method, List<String> permissionCodes) {
         // 定义路径与权限的映射关系（使用模块级权限）
         Map<String, String> pathPermissionMap = new HashMap<>();
-        
+
         // 平台接入 - 需要 platform 模块权限
         pathPermissionMap.put("GET:/platform/list", "platform");
         pathPermissionMap.put("GET:/platform/", "platform");
         pathPermissionMap.put("POST:/platform", "platform");
         pathPermissionMap.put("PUT:/platform", "platform");
         pathPermissionMap.put("DELETE:/platform/", "platform");
-        
+
         // API管理 - 需要 api 模块权限
         pathPermissionMap.put("GET:/api-info/list", "api");
         pathPermissionMap.put("GET:/api-info/", "api");
@@ -108,21 +109,21 @@ public class PermissionInterceptor implements HandlerInterceptor {
         pathPermissionMap.put("PUT:/api-info", "api");
         pathPermissionMap.put("DELETE:/api-info/", "api");
         pathPermissionMap.put("POST:/api-info/test", "api");
-        
+
         // 客户应用 - 需要 customer 模块权限
         pathPermissionMap.put("GET:/customer/app/list", "customer");
         pathPermissionMap.put("GET:/customer/app/", "customer");
         pathPermissionMap.put("POST:/customer/app", "customer");
         pathPermissionMap.put("PUT:/customer/app", "customer");
         pathPermissionMap.put("DELETE:/customer/app/", "customer");
-        
+
         // 编排设计 - 需要 orchestration 模块权限
         pathPermissionMap.put("GET:/aggregate/list", "orchestration");
         pathPermissionMap.put("GET:/aggregate/", "orchestration");
         pathPermissionMap.put("POST:/aggregate", "orchestration");
         pathPermissionMap.put("PUT:/aggregate", "orchestration");
         pathPermissionMap.put("DELETE:/aggregate/", "orchestration");
-        
+
         // 治理中心 - 需要 governance 模块权限
         pathPermissionMap.put("GET:/governance/rate-limit/list", "governance");
         pathPermissionMap.put("POST:/governance/rate-limit", "governance");
@@ -134,28 +135,28 @@ public class PermissionInterceptor implements HandlerInterceptor {
         pathPermissionMap.put("DELETE:/governance/blacklist/", "governance");
         pathPermissionMap.put("GET:/governance/cache", "governance");
         pathPermissionMap.put("POST:/governance/cache", "governance");
-        
+
         // 监控中心 - 需要 monitor 模块权限
         pathPermissionMap.put("GET:/monitor/api-log/list", "monitor");
         pathPermissionMap.put("GET:/monitor/alert/list", "monitor");
         pathPermissionMap.put("GET:/monitor/alert/", "monitor");
         pathPermissionMap.put("POST:/monitor/alert", "monitor");
-        
+
         // 系统管理 - 需要具体的系统权限
         pathPermissionMap.put("GET:/system/user/list", "system:user:list");
         pathPermissionMap.put("POST:/system/user", "system:user:create");
         pathPermissionMap.put("PUT:/system/user", "system:user:update");
         pathPermissionMap.put("DELETE:/system/user/", "system:user:delete");
-        
+
         pathPermissionMap.put("GET:/system/role/list", "system:role:list");
         pathPermissionMap.put("GET:/system/role/all", "system:role:list");
         pathPermissionMap.put("POST:/system/role", "system:role:create");
         pathPermissionMap.put("PUT:/system/role", "system:role:update");
         pathPermissionMap.put("DELETE:/system/role/", "system:role:delete");
-        
+
         pathPermissionMap.put("GET:/system/permission", "system:role:list");
         pathPermissionMap.put("POST:/system/permission/role/", "system:role:update");
-        
+
         pathPermissionMap.put("GET:/system/log/list", "system:log:list");
 
         // 检查路径权限
@@ -163,7 +164,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         for (Map.Entry<String, String> entry : pathPermissionMap.entrySet()) {
             String pattern = entry.getKey();
             String requiredPermission = entry.getValue();
-            
+
             if (matchPath(key, pattern)) {
                 return permissionCodes.contains(requiredPermission);
             }
@@ -189,12 +190,12 @@ public class PermissionInterceptor implements HandlerInterceptor {
     private void sendJsonResponse(HttpServletResponse response, int code, String message) throws Exception {
         response.setStatus(code);
         response.setContentType("application/json;charset=UTF-8");
-        
+
         Map<String, Object> result = new HashMap<>();
         result.put("code", code);
         result.put("message", message);
         result.put("data", null);
-        
+
         response.getWriter().write(objectMapper.writeValueAsString(result));
     }
 }

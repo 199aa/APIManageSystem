@@ -323,13 +323,13 @@ export default {
         this.loading = false
       }
     },
-    
+
     // 加载告警规则
     async loadRules() {
       try {
         const res = await getAlertRules()
         if (res.code === 200) {
-          this.ruleList = (res.data || []).map(rule => {
+          this.ruleList = (res.data || []).map((rule) => {
             // 解析condition字段
             let conditionData = {}
             try {
@@ -337,7 +337,7 @@ export default {
             } catch (e) {
               console.error('解析condition失败:', e)
             }
-            
+
             return {
               ...rule,
               enabled: rule.status === 1,
@@ -353,7 +353,7 @@ export default {
         console.error('加载告警规则失败:', error)
       }
     },
-    
+
     // 加载统计信息
     async loadStats() {
       try {
@@ -391,7 +391,7 @@ export default {
     handleSelectionChange(val) {
       this.selectedAlerts = val
     },
-    
+
     // 确认告警
     async handleAck(alert) {
       try {
@@ -413,17 +413,17 @@ export default {
         }
       }
     },
-    
+
     // 批量确认告警
     async handleBatchAck() {
       if (this.selectedAlerts.length === 0) {
         this.$message.warning('请选择要确认的告警')
         return
       }
-      
+
       try {
         await this.$confirm(`确认选中的 ${this.selectedAlerts.length} 条告警？`, '提示', { type: 'warning' })
-        const ids = this.selectedAlerts.map(alert => alert.id)
+        const ids = this.selectedAlerts.map((alert) => alert.id)
         const res = await batchAcknowledgeAlerts({ ids, acknowledgedBy: '系统管理员' })
         if (res.code === 200) {
           this.$message.success('批量确认成功')
@@ -438,7 +438,7 @@ export default {
         }
       }
     },
-    
+
     // 解决告警
     async handleResolve(alert) {
       try {
@@ -458,16 +458,16 @@ export default {
         }
       }
     },
-    
+
     showAlertDetail(row) {
       this.currentAlert = row
       this.alertDetailVisible = true
     },
-    
+
     showRuleDialog(rule) {
       if (rule) {
         // 编辑模式：从已解析的规则中获取数据
-        this.ruleForm = { 
+        this.ruleForm = {
           id: rule.id,
           name: rule.name,
           type: rule.type,
@@ -481,21 +481,21 @@ export default {
         }
       } else {
         // 新建模式：使用默认值
-        this.ruleForm = { 
-          id: null, 
-          name: '', 
-          type: '', 
-          operator: '>', 
-          threshold: '', 
-          unit: '%', 
-          duration: '5', 
-          level: 'warning', 
-          notify: ['email'], 
-          receivers: [] 
+        this.ruleForm = {
+          id: null,
+          name: '',
+          type: '',
+          operator: '>',
+          threshold: '',
+          unit: '%',
+          duration: '5',
+          level: 'warning',
+          notify: ['email'],
+          receivers: []
         }
       }
       this.ruleDialogVisible = true
-      
+
       // 重置表单验证状态
       this.$nextTick(() => {
         if (this.$refs.ruleFormRef) {
@@ -503,13 +503,13 @@ export default {
         }
       })
     },
-    
+
     // 保存规则
     async saveRule() {
       try {
         const valid = await this.$refs.ruleFormRef.validate()
         if (!valid) return
-        
+
         const ruleData = {
           ...this.ruleForm,
           condition: JSON.stringify({
@@ -522,11 +522,9 @@ export default {
           target: 'api',
           status: 1
         }
-        
-        const res = this.ruleForm.id 
-          ? await updateAlertRule(ruleData)
-          : await createAlertRule(ruleData)
-          
+
+        const res = this.ruleForm.id ? await updateAlertRule(ruleData) : await createAlertRule(ruleData)
+
         if (res.code === 200) {
           this.$message.success('规则保存成功')
           this.ruleDialogVisible = false
@@ -538,7 +536,7 @@ export default {
         this.$message.error('保存失败: ' + error.message)
       }
     },
-    
+
     // 删除规则
     async deleteRule(rule) {
       try {
@@ -556,7 +554,7 @@ export default {
         }
       }
     },
-    
+
     // 切换规则状态
     async toggleRule(rule) {
       try {
@@ -585,7 +583,11 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    h2 { color: #fff; margin: 0; font-size: 20px; }
+    h2 {
+      color: #fff;
+      margin: 0;
+      font-size: 20px;
+    }
   }
 
   .stats-row {
@@ -600,10 +602,30 @@ export default {
     background: rgba(35, 35, 55, 0.95);
     border: 1px solid rgba(102, 126, 234, 0.2);
 
-    &.critical { border-left: 4px solid #f56c6c; .stat-icon { color: #f56c6c; } }
-    &.warning { border-left: 4px solid #e6a23c; .stat-icon { color: #e6a23c; } }
-    &.info { border-left: 4px solid #409eff; .stat-icon { color: #409eff; } }
-    &.resolved { border-left: 4px solid #67c23a; .stat-icon { color: #67c23a; } }
+    &.critical {
+      border-left: 4px solid #f56c6c;
+      .stat-icon {
+        color: #f56c6c;
+      }
+    }
+    &.warning {
+      border-left: 4px solid #e6a23c;
+      .stat-icon {
+        color: #e6a23c;
+      }
+    }
+    &.info {
+      border-left: 4px solid #409eff;
+      .stat-icon {
+        color: #409eff;
+      }
+    }
+    &.resolved {
+      border-left: 4px solid #67c23a;
+      .stat-icon {
+        color: #67c23a;
+      }
+    }
 
     .stat-icon {
       font-size: 36px;
@@ -611,8 +633,16 @@ export default {
     }
 
     .stat-info {
-      .stat-value { font-size: 28px; font-weight: 600; color: #fff; }
-      .stat-label { font-size: 14px; color: #8b8ba7; margin-top: 5px; }
+      .stat-value {
+        font-size: 28px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .stat-label {
+        font-size: 14px;
+        color: #8b8ba7;
+        margin-top: 5px;
+      }
     }
   }
 
@@ -639,10 +669,23 @@ export default {
   ::v-deep .el-table {
     background: transparent;
     color: #fff;
-    &::before { display: none; }
-    th { background: rgba(102, 126, 234, 0.1); color: #8b8ba7; border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-    td { border-bottom: 1px solid rgba(102, 126, 234, 0.1); }
-    tr { background: transparent; &:hover > td { background: rgba(102, 126, 234, 0.1); } }
+    &::before {
+      display: none;
+    }
+    th {
+      background: rgba(102, 126, 234, 0.1);
+      color: #8b8ba7;
+      border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+    }
+    td {
+      border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+    }
+    tr {
+      background: transparent;
+      &:hover > td {
+        background: rgba(102, 126, 234, 0.1);
+      }
+    }
   }
 
   .condition-code {
@@ -665,21 +708,36 @@ export default {
     color: #667eea;
   }
 
-  .danger-btn { color: #f56c6c; }
+  .danger-btn {
+    color: #f56c6c;
+  }
 }
 
 ::v-deep .el-dialog {
   background: #1a1a2e;
-  .el-dialog__header { border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-  .el-dialog__title { color: #fff; }
-  .el-form-item__label { color: #8b8ba7; }
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  }
+  .el-dialog__title {
+    color: #fff;
+  }
+  .el-form-item__label {
+    color: #8b8ba7;
+  }
   .el-input__inner,
-  .el-select .el-input__inner { background: rgba(35, 35, 55, 0.8); border-color: rgba(102, 126, 234, 0.3); color: #fff; }
+  .el-select .el-input__inner {
+    background: rgba(35, 35, 55, 0.8);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #fff;
+  }
 }
 
 ::v-deep .el-drawer {
   background: #1a1a2e;
-  .el-drawer__header { color: #fff; border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
+  .el-drawer__header {
+    color: #fff;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  }
 }
 
 .alert-detail {
@@ -693,12 +751,38 @@ export default {
     border-radius: 10px;
     margin-bottom: 20px;
 
-    &.critical { background: rgba(245, 108, 108, 0.2); i { color: #f56c6c; font-size: 36px; } }
-    &.warning { background: rgba(230, 162, 60, 0.2); i { color: #e6a23c; font-size: 36px; } }
-    &.info { background: rgba(64, 158, 255, 0.2); i { color: #409eff; font-size: 36px; } }
+    &.critical {
+      background: rgba(245, 108, 108, 0.2);
+      i {
+        color: #f56c6c;
+        font-size: 36px;
+      }
+    }
+    &.warning {
+      background: rgba(230, 162, 60, 0.2);
+      i {
+        color: #e6a23c;
+        font-size: 36px;
+      }
+    }
+    &.info {
+      background: rgba(64, 158, 255, 0.2);
+      i {
+        color: #409eff;
+        font-size: 36px;
+      }
+    }
 
-    .alert-title { color: #fff; font-size: 16px; font-weight: 600; }
-    .alert-time { color: #8b8ba7; font-size: 13px; margin-top: 5px; }
+    .alert-title {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .alert-time {
+      color: #8b8ba7;
+      font-size: 13px;
+      margin-top: 5px;
+    }
   }
 
   .alert-detail-section {
@@ -711,7 +795,10 @@ export default {
       border-bottom: 1px solid rgba(102, 126, 234, 0.1);
     }
 
-    p { color: #a8b2d1; line-height: 1.6; }
+    p {
+      color: #a8b2d1;
+      line-height: 1.6;
+    }
   }
 
   .metrics-list {
@@ -719,13 +806,29 @@ export default {
     gap: 30px;
 
     .metric-item {
-      label { display: block; color: #6b6b80; font-size: 12px; margin-bottom: 5px; }
-      .metric-value { font-size: 18px; font-weight: 600; color: #fff; &.danger { color: #f56c6c; } }
+      label {
+        display: block;
+        color: #6b6b80;
+        font-size: 12px;
+        margin-bottom: 5px;
+      }
+      .metric-value {
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+        &.danger {
+          color: #f56c6c;
+        }
+      }
     }
   }
 
-  ::v-deep .el-timeline-item__timestamp { color: #6b6b80; }
-  ::v-deep .el-timeline-item__content { color: #a8b2d1; }
+  ::v-deep .el-timeline-item__timestamp {
+    color: #6b6b80;
+  }
+  ::v-deep .el-timeline-item__content {
+    color: #a8b2d1;
+  }
 
   .alert-detail-actions {
     margin-top: 30px;

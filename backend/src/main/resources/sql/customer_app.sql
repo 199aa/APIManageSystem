@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS `customer_app` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_app_key` (`app_key`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户应用表';
-
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '客户应用表';
 -- 创建API授权表（用于记录应用与API的授权关系）
 CREATE TABLE IF NOT EXISTS `api_authorization` (
   `id` BIGINT(20) NOT NULL AUTO_INCREMENT COMMENT '授权ID',
@@ -27,4 +26,4 @@ CREATE TABLE IF NOT EXISTS `api_authorization` (
   UNIQUE KEY `uk_app_api` (`app_id`, `api_id`),
   KEY `idx_app_id` (`app_id`),
   KEY `idx_api_id` (`api_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API授权表';
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = 'API授权表';

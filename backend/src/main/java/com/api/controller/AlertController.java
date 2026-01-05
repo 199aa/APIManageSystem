@@ -17,10 +17,10 @@ import java.util.Map;
 @RequestMapping("/monitor/alert")
 @CrossOrigin
 public class AlertController {
-    
+
     @Autowired
     private AlertService alertService;
-    
+
     /**
      * 获取告警列表（分页）
      */
@@ -39,7 +39,7 @@ public class AlertController {
             return Result.error("获取告警列表失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 获取活跃告警
      */
@@ -52,7 +52,7 @@ public class AlertController {
             return Result.error("获取活跃告警失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 获取告警统计
      */
@@ -65,13 +65,14 @@ public class AlertController {
             return Result.error("获取告警统计失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 确认告警
      */
     @PostMapping("/acknowledge/{id}")
     @OperationLog(module = "告警管理", type = "确认", description = "确认告警")
-    public Result<Void> acknowledgeAlert(@PathVariable Long id, @RequestBody(required = false) Map<String, String> data) {
+    public Result<Void> acknowledgeAlert(@PathVariable Long id,
+            @RequestBody(required = false) Map<String, String> data) {
         try {
             String acknowledgedBy = data != null ? data.get("acknowledgedBy") : "系统";
             alertService.acknowledgeAlert(id, acknowledgedBy);
@@ -80,7 +81,7 @@ public class AlertController {
             return Result.error("确认告警失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 批量确认告警
      */
@@ -92,14 +93,14 @@ public class AlertController {
             List<Integer> idsInt = (List<Integer>) data.get("ids");
             List<Long> ids = idsInt.stream().map(Long::valueOf).collect(java.util.stream.Collectors.toList());
             String acknowledgedBy = (String) data.getOrDefault("acknowledgedBy", "系统");
-            
+
             alertService.batchAcknowledgeAlerts(ids, acknowledgedBy);
             return Result.success();
         } catch (Exception e) {
             return Result.error("批量确认告警失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 解决告警
      */
@@ -113,9 +114,9 @@ public class AlertController {
             return Result.error("解决告警失败: " + e.getMessage());
         }
     }
-    
+
     // ==================== 告警规则管理 ====================
-    
+
     /**
      * 获取所有告警规则
      */
@@ -128,7 +129,7 @@ public class AlertController {
             return Result.error("获取告警规则失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 创建告警规则
      */
@@ -142,7 +143,7 @@ public class AlertController {
             return Result.error("创建告警规则失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 更新告警规则
      */
@@ -156,7 +157,7 @@ public class AlertController {
             return Result.error("更新告警规则失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 删除告警规则
      */
@@ -170,7 +171,7 @@ public class AlertController {
             return Result.error("删除告警规则失败: " + e.getMessage());
         }
     }
-    
+
     /**
      * 更新规则状态
      */

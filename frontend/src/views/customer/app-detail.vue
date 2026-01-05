@@ -84,15 +84,7 @@
         </div>
       </div>
 
-      <el-tree
-        ref="tree"
-        :data="apiTree"
-        :props="treeProps"
-        show-checkbox
-        node-key="id"
-        default-expand-all
-        :default-checked-keys="checkedKeys"
-        @check-change="handleCheckChange">
+      <el-tree ref="tree" :data="apiTree" :props="treeProps" show-checkbox node-key="id" default-expand-all :default-checked-keys="checkedKeys" @check-change="handleCheckChange">
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <span>
             <i :class="data.children ? 'el-icon-folder' : 'el-icon-connection'"></i>
@@ -168,7 +160,7 @@ export default {
         this.loading = false
       }
     },
-    
+
     // 加载API列表
     async loadApiList() {
       try {
@@ -183,11 +175,11 @@ export default {
         console.error('加载API列表失败:', error)
       }
     },
-    
+
     // 按平台分组API
     groupApisByPlatform(apis) {
       const platformMap = {}
-      apis.forEach(api => {
+      apis.forEach((api) => {
         const platformName = api.platformName || '未分类'
         if (!platformMap[platformName]) {
           platformMap[platformName] = {
@@ -205,7 +197,7 @@ export default {
       })
       return Object.values(platformMap)
     },
-    
+
     // 加载已授权的API
     async loadAuthorizedApis() {
       try {
@@ -223,44 +215,46 @@ export default {
         console.error('加载授权列表失败:', error)
       }
     },
-    
+
     goBack() {
       this.$router.push('/customer/apps')
     },
-    
+
     copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
         this.$message.success('已复制到剪贴板')
       })
     },
-    
+
     // 重置密钥
     async resetSecret() {
       this.$confirm('确定要重置密钥吗？重置后原密钥将立即失效', '警告', {
         type: 'warning',
         confirmButtonText: '确定重置',
         cancelButtonText: '取消'
-      }).then(async () => {
-        try {
-          const res = await resetAppSecret(this.appId)
-          if (res.code === 200) {
-            this.appInfo.appSecret = res.data.appSecret
-            this.$message.success('密钥已重置')
-            this.showSecret = true
-          } else {
-            this.$message.error(res.message || '重置失败')
+      })
+        .then(async () => {
+          try {
+            const res = await resetAppSecret(this.appId)
+            if (res.code === 200) {
+              this.appInfo.appSecret = res.data.appSecret
+              this.$message.success('密钥已重置')
+              this.showSecret = true
+            } else {
+              this.$message.error(res.message || '重置失败')
+            }
+          } catch (error) {
+            this.$message.error('重置失败: ' + error.message)
           }
-        } catch (error) {
-          this.$message.error('重置失败: ' + error.message)
-        }
-      }).catch(() => {})
+        })
+        .catch(() => {})
     },
-    
+
     getMethodType(method) {
       const types = { GET: 'success', POST: 'primary', PUT: 'warning', DELETE: 'danger' }
       return types[method] || 'info'
     },
-    
+
     handleCheckAllChange(val) {
       if (val) {
         const allKeys = []
@@ -270,9 +264,9 @@ export default {
         this.$refs.tree.setCheckedKeys([])
       }
     },
-    
+
     getAllApiIds(tree, result) {
-      tree.forEach(node => {
+      tree.forEach((node) => {
         if (node.children) {
           this.getAllApiIds(node.children, result)
         } else {
@@ -280,18 +274,18 @@ export default {
         }
       })
     },
-    
+
     handleCheckChange() {
       const checkedNodes = this.$refs.tree.getCheckedNodes()
-      const checkedApiCount = checkedNodes.filter(node => !node.children).length
+      const checkedApiCount = checkedNodes.filter((node) => !node.children).length
       const totalApiCount = this.getTotalApiCount()
       this.checkAll = checkedApiCount === totalApiCount
     },
-    
+
     getTotalApiCount() {
       let count = 0
       const countApis = (nodes) => {
-        nodes.forEach(node => {
+        nodes.forEach((node) => {
           if (node.children) {
             countApis(node.children)
           } else {
@@ -302,19 +296,19 @@ export default {
       countApis(this.apiTree)
       return count
     },
-    
+
     // 保存权限
     async savePermissions() {
       try {
         const checkedNodes = this.$refs.tree.getCheckedNodes()
         // 只保存叶子节点（API），过滤掉分组节点
-        const apiIds = checkedNodes.filter(node => !node.children).map(node => node.id)
-        
+        const apiIds = checkedNodes.filter((node) => !node.children).map((node) => node.id)
+
         const res = await savePermissions({
           appId: this.appId,
           apiIds: apiIds
         })
-        
+
         if (res.code === 200) {
           this.$message.success('权限保存成功')
           this.loadAppDetail() // 重新加载统计信息
@@ -341,7 +335,11 @@ export default {
       align-items: center;
       gap: 15px;
 
-      h2 { color: #fff; margin: 0; font-size: 20px; }
+      h2 {
+        color: #fff;
+        margin: 0;
+        font-size: 20px;
+      }
     }
   }
 
@@ -363,7 +361,10 @@ export default {
       align-items: center;
       color: #fff;
 
-      i { margin-right: 8px; color: #667eea; }
+      i {
+        margin-right: 8px;
+        color: #667eea;
+      }
 
       .header-actions {
         display: flex;
@@ -423,7 +424,9 @@ export default {
       color: #fff;
       margin-bottom: 5px;
 
-      &.success { color: #67c23a; }
+      &.success {
+        color: #67c23a;
+      }
     }
 
     .stat-label {
@@ -463,7 +466,10 @@ export default {
       justify-content: space-between;
       padding-right: 10px;
 
-      i { margin-right: 8px; color: #667eea; }
+      i {
+        margin-right: 8px;
+        color: #667eea;
+      }
 
       .tree-extra {
         display: flex;

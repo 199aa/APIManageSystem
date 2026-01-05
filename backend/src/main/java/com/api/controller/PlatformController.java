@@ -35,11 +35,11 @@ public class PlatformController {
      */
     @GetMapping("/list")
     public Result list(@RequestParam(defaultValue = "1") Integer page,
-                       @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "10") Integer pageSize) {
         int offset = (page - 1) * pageSize;
         List<Platform> list = platformMapper.selectPage(offset, pageSize);
         int total = platformMapper.countAll();
-        
+
         // 脱敏处理authConfig并添加健康状态
         for (Platform platform : list) {
             maskAuthConfig(platform);
@@ -49,13 +49,13 @@ public class PlatformController {
                 platform.setHealthStatus(cachedStatus);
             }
         }
-        
+
         Map<String, Object> data = new HashMap<>();
         data.put("list", list);
         data.put("total", total);
         data.put("page", page);
         data.put("pageSize", pageSize);
-        
+
         return Result.success(data);
     }
 
@@ -89,7 +89,7 @@ public class PlatformController {
         try {
             // 加密authConfig
             encryptAuthConfig(platform);
-            
+
             if (platform.getId() == null) {
                 // 检查编码是否重复
                 Platform existing = platformMapper.selectByCode(platform.getCode());
@@ -144,11 +144,11 @@ public class PlatformController {
             }
 
             Map<String, Object> result = platformProxyService.healthCheck(platform);
-            
+
             // 更新数据库中的健康状态
             String healthStatus = (Boolean) result.get("success") ? "ONLINE" : "OFFLINE";
             platformMapper.updateHealthStatus(id, healthStatus);
-            
+
             return Result.success(result);
         } catch (Exception e) {
             return Result.error("健康检测失败: " + e.getMessage());
@@ -214,16 +214,17 @@ public class PlatformController {
                 String decrypted = AesUtil.decrypt(authConfig);
                 // 解析JSON
                 Map<String, Object> configMap = objectMapper.readValue(decrypted, Map.class);
-                
+
                 // 脱敏处理
                 for (Map.Entry<String, Object> entry : configMap.entrySet()) {
                     String key = entry.getKey();
-                    if (key.contains("key") || key.contains("token") || key.contains("password") || key.contains("secret")) {
+                    if (key.contains("key") || key.contains("token") || key.contains("password")
+                            || key.contains("secret")) {
                         String value = entry.getValue().toString();
                         configMap.put(key, AesUtil.mask(value));
                     }
                 }
-                
+
                 // 重新序列化（已脱敏）
                 platform.setAuthConfig(objectMapper.writeValueAsString(configMap));
             }

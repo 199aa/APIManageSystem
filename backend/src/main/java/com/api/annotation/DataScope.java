@@ -10,17 +10,17 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface DataScope {
-    
+
     /**
      * 数据权限类型
      */
     DataScopeType value() default DataScopeType.ALL;
-    
+
     /**
      * 用户ID字段名（用于过滤用户自己的数据）
      */
     String userIdColumn() default "user_id";
-    
+
     /**
      * 部门ID字段名（用于过滤部门数据）
      */

@@ -13,8 +13,8 @@ public class PermissionAuditLog implements Serializable {
     private Long id;
     private Long userId;
     private String username;
-    private String operationType;  // GRANT-授权, REVOKE-撤销, MODIFY-修改
-    private String targetType;      // ROLE-角色, USER-用户
+    private String operationType; // GRANT-授权, REVOKE-撤销, MODIFY-修改
+    private String targetType; // ROLE-角色, USER-用户
     private Long targetId;
     private String targetName;
     private String permissionCodes;

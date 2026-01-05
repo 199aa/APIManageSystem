@@ -16,4 +16,4 @@ CREATE TABLE IF NOT EXISTS permission_audit_log (
     INDEX idx_user_id (user_id),
     INDEX idx_target (target_type, target_id),
     INDEX idx_create_time (create_time)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限审计日志表';
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '权限审计日志表';

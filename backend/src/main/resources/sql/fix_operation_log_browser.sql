@@ -4,16 +4,12 @@
 -- 解决：扩大browser字段长度从 varchar(100) 到 varchar(500)
 -- 执行时间：2026-01-04
 -- ========================================
-
 USE api_manage;
-
 -- 修改 browser 字段长度
-ALTER TABLE operation_log 
+ALTER TABLE operation_log
 MODIFY COLUMN browser VARCHAR(500) COMMENT '浏览器信息';
-
 -- 验证修改结果
 DESCRIBE operation_log;
-
 -- ========================================
 -- 说明：
 -- 1. 现代浏览器User-Agent示例长度通常在200-400字符之间

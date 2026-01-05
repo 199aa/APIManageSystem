@@ -29,11 +29,10 @@ public class AggregateController {
     public Result list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize,
-            @RequestParam(required = false) String name
-    ) {
+            @RequestParam(required = false) String name) {
         try {
             int offset = (page - 1) * pageSize;
-            
+
             // 查询聚合接口 (is_aggregate = 1)
             Map<String, Object> params = new HashMap<>();
             params.put("offset", offset);
@@ -85,7 +84,7 @@ public class AggregateController {
             apiInfo.setIsAggregate(1);
             apiInfo.setMethod("POST"); // 聚合接口统一使用POST
             apiInfo.setStatus(0); // 默认草稿状态
-            
+
             if (apiInfo.getPlatformId() == null) {
                 apiInfo.setPlatformId(0L); // 聚合接口不属于特定平台
             }
@@ -220,12 +219,11 @@ public class AggregateController {
     @PostMapping("/**")
     public Result invoke(
             @RequestBody(required = false) Map<String, Object> params,
-            javax.servlet.http.HttpServletRequest request
-    ) {
+            javax.servlet.http.HttpServletRequest request) {
         try {
             // 提取路径
             String path = request.getRequestURI().replace("/aggregate", "");
-            
+
             // 查找聚合接口
             ApiInfo apiInfo = apiInfoMapper.selectByPath(path);
             if (apiInfo == null || apiInfo.getIsAggregate() != 1 || apiInfo.getStatus() != 1) {

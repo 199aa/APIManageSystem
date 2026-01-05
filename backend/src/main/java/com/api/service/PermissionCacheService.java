@@ -31,25 +31,25 @@ public class PermissionCacheService {
      */
     public List<Permission> getRolePermissions(Long roleId) {
         String key = ROLE_PERMISSION_KEY_PREFIX + roleId;
-        
+
         // 尝试从缓存获取
         @SuppressWarnings("unchecked")
         List<Permission> permissions = (List<Permission>) redisTemplate.opsForValue().get(key);
-        
+
         if (permissions != null && !permissions.isEmpty()) {
             return permissions;
         }
-        
+
         // 缓存未命中，从数据库查询
         permissions = permissionService.getPermissionsByRoleId(roleId);
-        
+
         // 写入缓存
         if (permissions != null && !permissions.isEmpty()) {
             redisTemplate.opsForValue().set(key, permissions, CACHE_EXPIRE_HOURS, TimeUnit.HOURS);
         } else {
             permissions = new ArrayList<>();
         }
-        
+
         return permissions;
     }
 
@@ -61,7 +61,7 @@ public class PermissionCacheService {
         String key = PERMISSION_KEY_PREFIX + userId;
         redisTemplate.delete(key);
     }
-    
+
     /**
      * 清除角色权限缓存
      */

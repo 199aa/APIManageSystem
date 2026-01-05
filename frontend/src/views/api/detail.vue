@@ -147,11 +147,7 @@
             <el-col :span="12">
               <div class="code-section">
                 <h4>响应示例 JSON</h4>
-                <el-input
-                  type="textarea"
-                  v-model="form.responseExample"
-                  :rows="15"
-                  placeholder='粘贴响应JSON示例，如：
+                <el-input type="textarea" v-model="form.responseExample" :rows="15" placeholder='粘贴响应JSON示例，如：
 {
   "code": 200,
   "message": "success",
@@ -217,7 +213,7 @@ export default {
   },
   computed: {
     getBaseUrl() {
-      const platform = this.platforms.find(p => p.id === this.form.platformId)
+      const platform = this.platforms.find((p) => p.id === this.form.platformId)
       return platform ? platform.baseUrl : 'https://'
     }
   },

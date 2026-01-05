@@ -48,6 +48,7 @@ public class GovernanceController {
     /**
      * 保存限流规则（新增或更新）
      */
+    @com.api.annotation.OperationLog(type = "SAVE", module = "governance", description = "保存限流规则")
     @PostMapping("/rateLimit/save")
     public Result<String> saveRateLimit(@RequestBody RateLimit rateLimit) {
         try {
@@ -64,6 +65,7 @@ public class GovernanceController {
     /**
      * 删除限流规则
      */
+    @com.api.annotation.OperationLog(type = "DELETE", module = "governance", description = "删除限流规则")
     @DeleteMapping("/rateLimit/delete/{id}")
     public Result<String> deleteRateLimit(@PathVariable Long id) {
         try {
@@ -77,6 +79,7 @@ public class GovernanceController {
     /**
      * 更新限流规则状态
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "governance", description = "更新限流规则状态")
     @PutMapping("/rateLimit/status/{id}/{status}")
     public Result<String> updateRateLimitStatus(@PathVariable Long id, @PathVariable Integer status) {
         try {
@@ -109,6 +112,7 @@ public class GovernanceController {
     /**
      * 保存黑名单
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "governance", description = "保存黑名单")
     @PostMapping("/blacklist/saveBlacklist")
     public Result<String> saveBlacklist(@RequestBody List<String> ips) {
         try {
@@ -122,6 +126,7 @@ public class GovernanceController {
     /**
      * 保存白名单
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "governance", description = "保存白名单")
     @PostMapping("/blacklist/saveWhitelist")
     public Result<String> saveWhitelist(@RequestBody List<String> ips) {
         try {
@@ -150,6 +155,7 @@ public class GovernanceController {
     /**
      * 保存缓存规则（新增或更新）
      */
+    @com.api.annotation.OperationLog(type = "SAVE", module = "governance", description = "保存缓存规则")
     @PostMapping("/cache/save")
     public Result<String> saveCacheRule(@RequestBody CacheRule cacheRule) {
         try {
@@ -163,6 +169,7 @@ public class GovernanceController {
     /**
      * 删除缓存规则
      */
+    @com.api.annotation.OperationLog(type = "DELETE", module = "governance", description = "删除缓存规则")
     @DeleteMapping("/cache/delete/{id}")
     public Result<String> deleteCacheRule(@PathVariable Long id) {
         try {
@@ -176,6 +183,7 @@ public class GovernanceController {
     /**
      * 清除指定API的缓存
      */
+    @com.api.annotation.OperationLog(type = "CLEAR", module = "governance", description = "清除API缓存")
     @PostMapping("/cache/clear/{id}")
     public Result<String> clearCache(@PathVariable Long id) {
         try {

@@ -29,7 +29,7 @@ public class BlacklistWhitelistService {
     public void saveBlacklist(List<String> ips) {
         // 删除旧的黑名单
         blacklistWhitelistMapper.deleteByType("blacklist");
-        
+
         // 批量插入新的黑名单
         if (ips != null && !ips.isEmpty()) {
             List<BlacklistWhitelist> list = new ArrayList<>();
@@ -51,7 +51,7 @@ public class BlacklistWhitelistService {
     public void saveWhitelist(List<String> ips) {
         // 删除旧的白名单
         blacklistWhitelistMapper.deleteByType("whitelist");
-        
+
         // 批量插入新的白名单
         if (ips != null && !ips.isEmpty()) {
             List<BlacklistWhitelist> list = new ArrayList<>();

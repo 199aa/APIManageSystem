@@ -1,5 +1,4 @@
 import request from '@/utils/request'
-import { getActiveAlerts as getAlerts } from './monitor'
 
 /**
  * 获取核心统计指标
@@ -90,9 +89,13 @@ export function getHighestErrorApis(limit = 10) {
 }
 
 /**
- * 获取活跃告警列表 - 使用monitor中的真实API
+ * 获取活跃告警列表
  * @param {number} limit - 返回条数
  */
 export function getActiveAlerts(limit = 5) {
-  return getAlerts(limit)
+  return request({
+    url: '/dashboard/alerts',
+    method: 'get',
+    params: { limit }
+  })
 }

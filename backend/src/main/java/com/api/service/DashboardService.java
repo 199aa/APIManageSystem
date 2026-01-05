@@ -3,6 +3,7 @@ package com.api.service;
 import com.api.mapper.ApiCallLogMapper;
 import com.api.mapper.ApiInfoMapper;
 import com.api.mapper.PlatformMapper;
+import com.api.model.Alert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class DashboardService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    private AlertService alertService;
+
     private static final String REDIS_KEY_TOTAL_CALLS = "dashboard:total_calls";
     private static final String REDIS_KEY_TODAY_CALLS = "dashboard:today_calls:";
     private static final String REDIS_KEY_TODAY_SUCCESS = "dashboard:today_success:";
@@ -49,7 +53,7 @@ public class DashboardService {
         // 接入平台数
         int platformTotal = platformMapper.countAll();
         stats.put("platformTotal", platformTotal);
-        
+
         // 异常平台数
         int offlinePlatforms = platformMapper.countOfflinePlatforms();
         stats.put("offlinePlatforms", offlinePlatforms);
@@ -91,8 +95,9 @@ public class DashboardService {
         stats.put("avgResponseTime", avgTimeValue + "ms");
         stats.put("avgResponseTimeRaw", avgTimeValue);
 
-        // 活跃告警数 - 动态计算
-        int activeAlertCount = getActiveAlerts(10).size();
+        // 活跃告警数 - 从数据库查询真实告警
+        List<Alert> activeAlerts = alertService.getActiveAlerts(100);
+        int activeAlertCount = activeAlerts.size();
         stats.put("activeAlerts", activeAlertCount);
 
         // API总数趋势（暂时设为固定值，后续可扩展）
@@ -120,7 +125,7 @@ public class DashboardService {
             for (Map<String, Object> item : result) {
                 hourMap.put((String) item.get("label"), ((Number) item.get("value")).intValue());
             }
-            
+
             // 填充完整的24小时数据
             for (int i = 0; i < 24; i++) {
                 String hour = String.format("%02d:00", i);
@@ -128,7 +133,7 @@ public class DashboardService {
                 int count = hourMap.getOrDefault(hour, 0);
                 values.add(count);
                 // 假设成功率95%
-                successValues.add((int)(count * 0.95));
+                successValues.add((int) (count * 0.95));
             }
         } else if ("7d".equals(range)) {
             // 7天数据
@@ -137,7 +142,7 @@ public class DashboardService {
                 labels.add((String) item.get("label"));
                 int count = ((Number) item.get("value")).intValue();
                 values.add(count);
-                successValues.add((int)(count * 0.95));
+                successValues.add((int) (count * 0.95));
             }
         } else if ("30d".equals(range)) {
             // 30天数据
@@ -146,7 +151,7 @@ public class DashboardService {
                 labels.add((String) item.get("label"));
                 int count = ((Number) item.get("value")).intValue();
                 values.add(count);
-                successValues.add((int)(count * 0.95));
+                successValues.add((int) (count * 0.95));
             }
         }
 
@@ -172,46 +177,25 @@ public class DashboardService {
 
     /**
      * 获取活跃告警列表
-     * 基于高错误率API和慢接口动态生成告警
+     * 从数据库查询真实的告警记录
      */
     public List<Map<String, Object>> getActiveAlerts(int limit) {
-        List<Map<String, Object>> alerts = new java.util.ArrayList<>();
-        
-        // 获取错误率最高的API
-        List<Map<String, Object>> errorApis = apiCallLogMapper.selectHighestErrorApis(3);
-        for (Map<String, Object> api : errorApis) {
-            double errorRate = ((Number) api.get("errorRate")).doubleValue();
-            if (errorRate > 10) { // 错误率超过10%则告警
-                Map<String, Object> alert = new HashMap<>();
-                alert.put("level", errorRate > 20 ? "critical" : "warning");
-                alert.put("content", String.format("%s 错误率达到%.1f%%，超过正常阈值", 
-                    api.get("name"), errorRate));
-                alert.put("time", new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
-                alerts.add(alert);
-                
-                if (alerts.size() >= limit) break;
-            }
+        // 使用AlertService获取真实的告警数据
+        List<Alert> alerts = alertService.getActiveAlerts(limit);
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+
+        for (Alert alert : alerts) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", alert.getId());
+            item.put("level", alert.getLevel());
+            item.put("content", alert.getContent());
+            item.put("time", new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+                    .format(alert.getAlertTime()));
+            item.put("status", alert.getStatus());
+            result.add(item);
         }
-        
-        // 获取响应最慢的API
-        if (alerts.size() < limit) {
-            List<Map<String, Object>> slowApis = apiCallLogMapper.selectSlowestApis(3);
-            for (Map<String, Object> api : slowApis) {
-                double avgTime = ((Number) api.get("avgTime")).doubleValue();
-                if (avgTime > 2000) { // 响应时间超过2秒则告警
-                    Map<String, Object> alert = new HashMap<>();
-                    alert.put("level", avgTime > 5000 ? "critical" : "warning");
-                    alert.put("content", String.format("%s 平均响应时间%.0fms，响应缓慢", 
-                        api.get("name"), avgTime));
-                    alert.put("time", new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
-                    alerts.add(alert);
-                    
-                    if (alerts.size() >= limit) break;
-                }
-            }
-        }
-        
-        return alerts;
+
+        return result;
     }
 
     /**

@@ -3,6 +3,7 @@ package com.api.aspect;
 import com.api.annotation.OperationLog;
 import com.api.model.User;
 import com.api.service.OperationLogService;
+import com.api.service.UserService;
 import com.api.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -17,6 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 @Aspect
 @Component
@@ -24,6 +26,9 @@ public class OperationLogAspect {
 
   @Autowired
   private OperationLogService operationLogService;
+
+  @Autowired
+  private UserService userService;
 
   @Autowired
   private JwtUtil jwtUtil;
@@ -58,19 +63,51 @@ public class OperationLogAspect {
       log.setRequestMethod(request.getMethod());
       log.setRequestUrl(request.getRequestURI());
       log.setIp(getIpAddress(request));
-      log.setBrowser(request.getHeader("User-Agent"));
+      
+      // 获取User-Agent并截断过长内容
+      String userAgent = request.getHeader("User-Agent");
+      if (userAgent != null && userAgent.length() > 500) {
+        userAgent = userAgent.substring(0, 500);
+      }
+      log.setBrowser(userAgent);
 
       // 获取用户信息
-      String token = request.getHeader("Authorization");
-      if (token != null && token.startsWith("Bearer ")) {
+      // 特殊处理：登录操作从请求参数中获取用户名
+      if ("LOGIN".equals(annotation.type())) {
         try {
-          String jwt = token.replace("Bearer ", "");
-          String userId = jwtUtil.getUserIdFromToken(jwt);
-          log.setUserId(Long.parseLong(userId));
-          // 这里可以查询用户名，暂时使用ID
-          log.setUsername("User" + userId);
+          Object[] args = joinPoint.getArgs();
+          if (args.length > 0 && args[0] instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> loginData = (Map<String, String>) args[0];
+            String username = loginData.get("username");
+            if (username != null && !username.isEmpty()) {
+              log.setUsername(username);
+              // 登录操作时还没有userId，先不设置
+            }
+          }
         } catch (Exception e) {
-          // Token解析失败，忽略
+          System.err.println("从登录参数获取用户名失败: " + e.getMessage());
+        }
+      } else {
+        // 其他操作从token获取用户信息
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+          try {
+            String jwt = token.replace("Bearer ", "");
+            String userId = jwtUtil.getUserIdFromToken(jwt);
+            log.setUserId(Long.parseLong(userId));
+            
+            // 查询真实用户名
+            User user = userService.getUserById(Long.parseLong(userId));
+            if (user != null) {
+              log.setUsername(user.getUsername());
+            } else {
+              log.setUsername("User" + userId);
+            }
+          } catch (Exception e) {
+            // Token解析失败，忽略
+            System.err.println("解析Token或获取用户信息失败: " + e.getMessage());
+          }
         }
       }
 

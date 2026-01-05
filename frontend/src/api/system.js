@@ -177,6 +177,15 @@ export function cleanExpiredLogs(days) {
   })
 }
 
+// 导出操作日志
+export function exportOperationLogs(params) {
+  return request({
+    url: '/system/log/export',
+    method: 'get',
+    params
+  })
+}
+
 /**
  * 权限管理 API
  */

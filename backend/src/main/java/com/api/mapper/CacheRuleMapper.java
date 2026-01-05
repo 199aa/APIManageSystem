@@ -8,12 +8,12 @@ import java.util.List;
 @Mapper
 public interface CacheRuleMapper {
     List<CacheRule> selectAll();
-    
+
     CacheRule selectById(@Param("id") Long id);
-    
+
     int insert(CacheRule cacheRule);
-    
+
     int update(CacheRule cacheRule);
-    
+
     int deleteById(@Param("id") Long id);
 }

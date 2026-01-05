@@ -72,4 +72,22 @@ public class ApiController {
       return Result.error(e.getMessage());
     }
   }
+
+  /**
+   * 测试接口 - 用于验证API调用统计功能
+   * 这个接口会被ApiCallLogAspect切面拦截并统计
+   */
+  @GetMapping("/test/hello")
+  public Result<String> testHello(@RequestParam(required = false, defaultValue = "World") String name) {
+    return Result.success("Hello, " + name + "! 当前时间: " + new java.util.Date());
+  }
+
+  @PostMapping("/test/echo")
+  public Result<Object> testEcho(@RequestBody(required = false) Object data) {
+    java.util.Map<String, Object> response = new java.util.HashMap<>();
+    response.put("receivedData", data);
+    response.put("timestamp", System.currentTimeMillis());
+    response.put("message", "Echo test successful");
+    return Result.success(response);
+  }
 }

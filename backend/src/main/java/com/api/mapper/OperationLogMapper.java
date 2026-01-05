@@ -26,6 +26,11 @@ public interface OperationLogMapper {
   List<OperationLog> selectByPage(@Param("params") Map<String, Object> params);
 
   /**
+   * 查询所有日志（支持条件查询，不分页）
+   */
+  List<OperationLog> selectAll(@Param("params") Map<String, Object> params);
+
+  /**
    * 查询日志总数（支持条件查询）
    */
   int countByCondition(@Param("params") Map<String, Object> params);

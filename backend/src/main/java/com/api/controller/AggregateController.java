@@ -77,6 +77,7 @@ public class AggregateController {
     /**
      * 创建聚合接口
      */
+    @com.api.annotation.OperationLog(type = "CREATE", module = "aggregate", description = "创建聚合接口")
     @PostMapping("/create")
     public Result create(@RequestBody ApiInfo apiInfo) {
         try {
@@ -99,6 +100,7 @@ public class AggregateController {
     /**
      * 保存聚合接口配置
      */
+    @com.api.annotation.OperationLog(type = "SAVE", module = "aggregate", description = "保存聚合接口配置")
     @PostMapping("/save")
     public Result save(@RequestBody ApiInfo apiInfo) {
         try {
@@ -118,6 +120,7 @@ public class AggregateController {
     /**
      * 发布聚合接口
      */
+    @com.api.annotation.OperationLog(type = "PUBLISH", module = "aggregate", description = "发布聚合接口")
     @PostMapping("/{id}/publish")
     public Result publish(@PathVariable Long id) {
         try {
@@ -143,6 +146,7 @@ public class AggregateController {
     /**
      * 下线聚合接口
      */
+    @com.api.annotation.OperationLog(type = "OFFLINE", module = "aggregate", description = "下线聚合接口")
     @PostMapping("/{id}/offline")
     public Result offline(@PathVariable Long id) {
         try {
@@ -163,6 +167,7 @@ public class AggregateController {
     /**
      * 删除聚合接口
      */
+    @com.api.annotation.OperationLog(type = "DELETE", module = "aggregate", description = "删除聚合接口")
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id) {
         try {
@@ -181,6 +186,7 @@ public class AggregateController {
     /**
      * 测试执行聚合接口
      */
+    @com.api.annotation.OperationLog(type = "TEST", module = "aggregate", description = "测试聚合接口")
     @PostMapping("/{id}/test")
     public Result test(@PathVariable Long id, @RequestBody Map<String, Object> params) {
         try {

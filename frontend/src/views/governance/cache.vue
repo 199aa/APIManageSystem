@@ -102,7 +102,7 @@ export default {
       try {
         const res = await getAggregateList()
         if (res.code === 200) {
-          this.apiOptions = res.data.map(item => ({ id: item.id, name: item.name }))
+          this.apiOptions = res.data.map((item) => ({ id: item.id, name: item.name }))
         }
       } catch (error) {
         console.error('加载API列表失败:', error)
@@ -127,7 +127,7 @@ export default {
       this.dialogVisible = true
     },
     handleSubmit() {
-      this.$refs.form.validate(async valid => {
+      this.$refs.form.validate(async (valid) => {
         if (valid) {
           try {
             const res = await saveCacheRule(this.form)
@@ -190,7 +190,11 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    h2 { color: #fff; margin: 0; font-size: 20px; }
+    h2 {
+      color: #fff;
+      margin: 0;
+      font-size: 20px;
+    }
   }
 
   .table-card {
@@ -201,10 +205,23 @@ export default {
     ::v-deep .el-table {
       background: transparent;
       color: #fff;
-      &::before { display: none; }
-      th { background: rgba(102, 126, 234, 0.1); color: #8b8ba7; border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-      td { border-bottom: 1px solid rgba(102, 126, 234, 0.1); }
-      tr { background: transparent; &:hover > td { background: rgba(102, 126, 234, 0.1); } }
+      &::before {
+        display: none;
+      }
+      th {
+        background: rgba(102, 126, 234, 0.1);
+        color: #8b8ba7;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+      }
+      td {
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      }
+      tr {
+        background: transparent;
+        &:hover > td {
+          background: rgba(102, 126, 234, 0.1);
+        }
+      }
     }
   }
 
@@ -217,17 +234,36 @@ export default {
     color: #a8b2d1;
   }
 
-  .highlight { color: #667eea; font-weight: 600; }
-  .danger-btn { color: #f56c6c !important; }
+  .highlight {
+    color: #667eea;
+    font-weight: 600;
+  }
+  .danger-btn {
+    color: #f56c6c !important;
+  }
 }
 
 ::v-deep .el-dialog {
   background: #1a1a2e;
   border: 1px solid rgba(102, 126, 234, 0.3);
-  .el-dialog__header { border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-  .el-dialog__title { color: #fff; }
-  .el-form-item__label { color: #8b8ba7; }
-  .el-input__inner { background: rgba(35, 35, 55, 0.8); border-color: rgba(102, 126, 234, 0.3); color: #fff; }
-  .form-tip { color: #6b6b80; font-size: 12px; margin-top: 5px; }
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  }
+  .el-dialog__title {
+    color: #fff;
+  }
+  .el-form-item__label {
+    color: #8b8ba7;
+  }
+  .el-input__inner {
+    background: rgba(35, 35, 55, 0.8);
+    border-color: rgba(102, 126, 234, 0.3);
+    color: #fff;
+  }
+  .form-tip {
+    color: #6b6b80;
+    font-size: 12px;
+    margin-top: 5px;
+  }
 }
 </style>

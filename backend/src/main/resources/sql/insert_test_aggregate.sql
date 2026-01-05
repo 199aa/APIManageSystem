@@ -1,25 +1,25 @@
 -- 插入测试用的聚合接口数据
 USE api_manage;
-
 -- 插入测试聚合接口
 INSERT INTO `api_info` (
-  `name`,
-  `path`,
-  `method`,
-  `description`,
-  `platform_id`,
-  `is_aggregate`,
-  `status`,
-  `aggregate_config`
-) VALUES (
-  '用户完整信息聚合',
-  '/aggregate/user-full-info',
-  'POST',
-  '聚合用户基础信息、订单列表、积分信息等',
-  0,
-  1,
-  1,
-  '{
+    `name`,
+    `path`,
+    `method`,
+    `description`,
+    `platform_id`,
+    `is_aggregate`,
+    `status`,
+    `aggregate_config`
+  )
+VALUES (
+    '用户完整信息聚合',
+    '/aggregate/user-full-info',
+    'POST',
+    '聚合用户基础信息、订单列表、积分信息等',
+    0,
+    1,
+    1,
+    '{
     "executeMode": "serial",
     "timeout": 30000,
     "nodes": [
@@ -75,7 +75,12 @@ INSERT INTO `api_info` (
       "userPoints": "object"
     }
   }'
-);
-
+  );
 -- 查看插入结果
-SELECT id, name, path, is_aggregate, status FROM api_info WHERE is_aggregate = 1;
+SELECT id,
+  name,
+  path,
+  is_aggregate,
+  status
+FROM api_info
+WHERE is_aggregate = 1;

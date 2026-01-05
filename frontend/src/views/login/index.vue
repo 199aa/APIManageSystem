@@ -153,6 +153,7 @@ export default {
               if (res.code === 200) {
                 this.$store.dispatch('user/setToken', res.data.token)
                 this.$store.dispatch('user/setUserInfo', res.data.userInfo)
+                this.$store.dispatch('user/setPermissions', res.data.permissions || [])
                 this.$message.success('登录成功')
                 this.$router.push('/dashboard')
               }

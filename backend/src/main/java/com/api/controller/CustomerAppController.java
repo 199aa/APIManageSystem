@@ -73,6 +73,7 @@ public class CustomerAppController {
     /**
      * 创建应用
      */
+    @com.api.annotation.OperationLog(type = "CREATE", module = "app", description = "创建客户应用")
     @PostMapping("/create")
     public Result<CustomerApp> createApp(@RequestHeader("Authorization") String token, 
                                          @RequestBody CustomerApp app) {
@@ -91,6 +92,7 @@ public class CustomerAppController {
     /**
      * 更新应用
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "app", description = "更新客户应用")
     @PutMapping("/update")
     public Result<CustomerApp> updateApp(@RequestBody CustomerApp app) {
         try {
@@ -107,6 +109,7 @@ public class CustomerAppController {
     /**
      * 删除应用
      */
+    @com.api.annotation.OperationLog(type = "DELETE", module = "app", description = "删除客户应用")
     @DeleteMapping("/delete/{id}")
     public Result<Void> deleteApp(@PathVariable Long id) {
         try {
@@ -120,6 +123,7 @@ public class CustomerAppController {
     /**
      * 更新应用状态
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "app", description = "更新应用状态")
     @PutMapping("/status")
     public Result<Void> updateAppStatus(@RequestBody CustomerApp app) {
         try {
@@ -136,6 +140,7 @@ public class CustomerAppController {
     /**
      * 重置应用密钥
      */
+    @com.api.annotation.OperationLog(type = "RESET", module = "app", description = "重置应用密钥")
     @PostMapping("/reset-secret/{id}")
     public Result<CustomerApp> resetAppSecret(@PathVariable Long id) {
         try {
@@ -165,6 +170,7 @@ public class CustomerAppController {
     /**
      * 批量保存应用的API授权
      */
+    @com.api.annotation.OperationLog(type = "AUTHORIZE", module = "app", description = "保存API授权")
     @PostMapping("/save-permissions")
     public Result<Void> savePermissions(@RequestBody Map<String, Object> data) {
         try {

@@ -29,11 +29,11 @@ public class PlatformHealthCheckTask {
     @Scheduled(cron = "0 */5 * * * ?")
     public void checkAllPlatforms() {
         System.out.println("开始平台健康检测...");
-        
+
         try {
             // 查询所有启用的平台
             List<Platform> platforms = platformMapper.selectAllEnabled();
-            
+
             if (platforms.isEmpty()) {
                 System.out.println("没有需要检测的平台");
                 return;
@@ -47,17 +47,18 @@ public class PlatformHealthCheckTask {
                 try {
                     // 执行健康检测
                     Map<String, Object> result = platformProxyService.healthCheck(platform);
-                    
+
                     boolean success = (Boolean) result.get("success");
                     String healthStatus = success ? "ONLINE" : "OFFLINE";
-                    
+
                     // 更新数据库状态
                     platformMapper.updateHealthStatus(platform.getId(), healthStatus);
-                    
+
                     if (success) {
                         onlineCount++;
-                        long responseTime = result.get("responseTime") != null ? 
-                            ((Number) result.get("responseTime")).longValue() : 0;
+                        long responseTime = result.get("responseTime") != null
+                                ? ((Number) result.get("responseTime")).longValue()
+                                : 0;
                         System.out.println("✓ 平台 [" + platform.getName() + "] 在线 (" + responseTime + "ms)");
                     } else {
                         offlineCount++;

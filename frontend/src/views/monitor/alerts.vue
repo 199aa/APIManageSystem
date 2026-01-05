@@ -329,11 +329,25 @@ export default {
       try {
         const res = await getAlertRules()
         if (res.code === 200) {
-          this.ruleList = (res.data || []).map(rule => ({
-            ...rule,
-            enabled: rule.status === 1,
-            notify: rule.notifyChannels ? JSON.parse(rule.notifyChannels) : []
-          }))
+          this.ruleList = (res.data || []).map(rule => {
+            // 解析condition字段
+            let conditionData = {}
+            try {
+              conditionData = rule.condition ? JSON.parse(rule.condition) : {}
+            } catch (e) {
+              console.error('解析condition失败:', e)
+            }
+            
+            return {
+              ...rule,
+              enabled: rule.status === 1,
+              notify: rule.notifyChannels ? JSON.parse(rule.notifyChannels) : [],
+              operator: conditionData.operator || '>',
+              threshold: conditionData.threshold || '',
+              unit: conditionData.unit || '%',
+              duration: conditionData.duration || '5'
+            }
+          })
         }
       } catch (error) {
         console.error('加载告警规则失败:', error)
@@ -452,13 +466,21 @@ export default {
     
     showRuleDialog(rule) {
       if (rule) {
+        // 编辑模式：从已解析的规则中获取数据
         this.ruleForm = { 
-          ...rule, 
-          notify: rule.notify || [], 
-          receivers: [],
-          condition: rule.condition || ''
+          id: rule.id,
+          name: rule.name,
+          type: rule.type,
+          operator: rule.operator || '>',
+          threshold: rule.threshold || '',
+          unit: rule.unit || '%',
+          duration: rule.duration || '5',
+          level: rule.level,
+          notify: rule.notify || [],
+          receivers: []
         }
       } else {
+        // 新建模式：使用默认值
         this.ruleForm = { 
           id: null, 
           name: '', 
@@ -473,6 +495,13 @@ export default {
         }
       }
       this.ruleDialogVisible = true
+      
+      // 重置表单验证状态
+      this.$nextTick(() => {
+        if (this.$refs.ruleFormRef) {
+          this.$refs.ruleFormRef.clearValidate()
+        }
+      })
     },
     
     // 保存规则

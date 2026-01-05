@@ -71,7 +71,7 @@ export default {
     }
   },
   methods: {
-    handleSend() {
+    async handleSend() {
       if (!this.testForm.url) {
         this.$message.warning('请输入请求URL')
         return
@@ -80,34 +80,69 @@ export default {
       this.loading = true
       const startTime = Date.now()
 
-      // 模拟请求
-      setTimeout(() => {
-        this.response = {
-          status: 200,
-          time: Date.now() - startTime,
-          data: JSON.stringify(
-            {
-              code: 200,
-              message: 'success',
-              data: {
-                result: 'API测试成功'
-              }
-            },
-            null,
-            2
-          ),
-          headers: JSON.stringify(
-            {
-              'content-type': 'application/json',
-              date: new Date().toUTCString(),
-              server: 'nginx'
-            },
-            null,
-            2
-          )
+      try {
+        // 解析请求头
+        let headers = {}
+        try {
+          headers = JSON.parse(this.testForm.headers)
+        } catch (e) {
+          this.$message.error('请求头格式错误，请使用正确的JSON格式')
+          this.loading = false
+          return
         }
+
+        // 解析请求体
+        let body = null
+        if (this.testForm.method !== 'GET' && this.testForm.body) {
+          try {
+            body = JSON.parse(this.testForm.body)
+          } catch (e) {
+            this.$message.error('请求体格式错误，请使用正确的JSON格式')
+            this.loading = false
+            return
+          }
+        }
+
+        // 构建请求配置
+        const config = {
+          method: this.testForm.method.toLowerCase(),
+          url: this.testForm.url,
+          headers: headers
+        }
+
+        // 如果有请求体，添加到配置中
+        if (body !== null) {
+          config.data = body
+        }
+
+        // 发送真实的HTTP请求
+        const response = await this.$http(config)
+        const endTime = Date.now()
+
+        // 处理响应
+        this.response = {
+          status: response.status,
+          time: endTime - startTime,
+          data: JSON.stringify(response.data, null, 2),
+          headers: JSON.stringify(response.headers, null, 2)
+        }
+
+        this.$message.success('请求成功')
+      } catch (error) {
+        const endTime = Date.now()
+
+        // 处理错误响应
+        this.response = {
+          status: error.response ? error.response.status : 0,
+          time: endTime - startTime,
+          data: error.response ? JSON.stringify(error.response.data, null, 2) : JSON.stringify({ error: error.message }, null, 2),
+          headers: error.response ? JSON.stringify(error.response.headers, null, 2) : '{}'
+        }
+
+        this.$message.error('请求失败: ' + error.message)
+      } finally {
         this.loading = false
-      }, 1000)
+      }
     },
     handleClear() {
       this.testForm = {

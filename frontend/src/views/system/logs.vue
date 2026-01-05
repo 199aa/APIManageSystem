@@ -162,7 +162,7 @@
 </template>
 
 <script>
-import { getOperationLogList, getOperationLogById } from '@/api/system'
+import { getOperationLogList, getOperationLogById, exportOperationLogs } from '@/api/system'
 
 export default {
   name: 'OperationLogs',
@@ -285,8 +285,49 @@ export default {
       this.page = page
       this.loadData()
     },
-    handleExport() {
-      this.$message.success('日志导出中...')
+    async handleExport() {
+      try {
+        this.$message.info('正在导出日志...')
+        
+        const params = {
+          username: this.searchForm.username || undefined,
+          operType: this.searchForm.operType || undefined,
+          module: this.searchForm.module || undefined,
+          status: this.searchForm.status !== '' ? this.searchForm.status : undefined
+        }
+
+        // 处理日期范围
+        if (this.searchForm.dateRange && this.searchForm.dateRange.length === 2) {
+          params.startDate = this.formatDateParam(this.searchForm.dateRange[0])
+          params.endDate = this.formatDateParam(this.searchForm.dateRange[1])
+        }
+
+        const res = await exportOperationLogs(params)
+        if (res.code === 200 && res.data) {
+          // 添加BOM头以支持Excel正确显示中文
+          const BOM = '\uFEFF'
+          const csvData = BOM + res.data
+          
+          // 创建CSV文件并下载
+          const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
+          const link = document.createElement('a')
+          const url = URL.createObjectURL(blob)
+          const timestamp = new Date().getTime()
+          link.setAttribute('href', url)
+          link.setAttribute('download', `操作日志_${timestamp}.csv`)
+          link.style.visibility = 'hidden'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+          this.$message.success('导出成功')
+        } else {
+          this.$message.error(res.message || '导出失败')
+        }
+      } catch (err) {
+        this.$message.error('导出日志失败: ' + (err.message || ''))
+        console.error('导出错误:', err)
+      }
     }
   }
 }

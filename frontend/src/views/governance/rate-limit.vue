@@ -232,7 +232,7 @@ export default {
         if (type === 'api') {
           const res = await getApiInfoList()
           if (res.code === 200) {
-            this.targetOptions = res.data.map(item => ({ id: item.id, name: item.name }))
+            this.targetOptions = res.data.map((item) => ({ id: item.id, name: item.name }))
           }
         } else if (type === 'app') {
           this.targetOptions = [
@@ -259,12 +259,12 @@ export default {
       this.rateLimitDialogVisible = true
     },
     saveRateLimit() {
-      this.$refs.rateLimitForm.validate(async valid => {
+      this.$refs.rateLimitForm.validate(async (valid) => {
         if (valid) {
           try {
             // 根据targetId查找targetName
             if (this.rateLimitForm.targetType !== 'global' && this.rateLimitForm.targetId) {
-              const target = this.targetOptions.find(t => t.id === this.rateLimitForm.targetId)
+              const target = this.targetOptions.find((t) => t.id === this.rateLimitForm.targetId)
               if (target) {
                 this.rateLimitForm.targetName = target.name
               }
@@ -272,7 +272,7 @@ export default {
               this.rateLimitForm.targetName = '全局'
               this.rateLimitForm.targetId = null
             }
-            
+
             const res = await saveRateLimit(this.rateLimitForm)
             if (res.code === 200) {
               this.$message.success('保存成功')
@@ -318,7 +318,7 @@ export default {
         row.status = row.status === 1 ? 0 : 1 // 回滚
       }
     },
-    
+
     // ==================== 黑白名单 ====================
     async loadBlacklist() {
       try {
@@ -333,7 +333,7 @@ export default {
     },
     async saveBlacklist() {
       try {
-        const ips = this.blacklistIPs.split('\n').filter(ip => ip.trim())
+        const ips = this.blacklistIPs.split('\n').filter((ip) => ip.trim())
         const res = await saveBlacklist(ips)
         if (res.code === 200) {
           this.$message.success('黑名单保存成功')
@@ -346,7 +346,7 @@ export default {
     },
     async saveWhitelist() {
       try {
-        const ips = this.whitelistIPs.split('\n').filter(ip => ip.trim())
+        const ips = this.whitelistIPs.split('\n').filter((ip) => ip.trim())
         const res = await saveWhitelist(ips)
         if (res.code === 200) {
           this.$message.success('白名单保存成功')
@@ -357,7 +357,7 @@ export default {
         this.$message.error('白名单保存失败')
       }
     },
-    
+
     // ==================== 缓存策略 ====================
     async loadCacheList() {
       try {
@@ -366,11 +366,11 @@ export default {
         if (res.code === 200) {
           this.cacheList = res.data
         }
-        
+
         // 加载聚合API列表
         const apiRes = await getAggregateList()
         if (apiRes.code === 200) {
-          this.aggregateApis = apiRes.data.map(item => ({ id: item.id, name: item.name }))
+          this.aggregateApis = apiRes.data.map((item) => ({ id: item.id, name: item.name }))
         }
       } catch (error) {
         console.error('加载缓存规则失败:', error)
@@ -392,7 +392,7 @@ export default {
       this.cacheDialogVisible = true
     },
     saveCacheRule() {
-      this.$refs.cacheForm.validate(async valid => {
+      this.$refs.cacheForm.validate(async (valid) => {
         if (valid) {
           try {
             const res = await saveCacheRule(this.cacheForm)
@@ -452,7 +452,11 @@ export default {
 
   .page-header {
     margin-bottom: 20px;
-    h2 { color: #fff; margin: 0; font-size: 20px; }
+    h2 {
+      color: #fff;
+      margin: 0;
+      font-size: 20px;
+    }
   }
 
   .tabs-card {
@@ -472,21 +476,43 @@ export default {
       .el-tabs__item {
         color: #8b8ba7;
         border: none;
-        &.is-active { color: #667eea; background: rgba(102, 126, 234, 0.2); }
-        &:hover { color: #667eea; }
+        &.is-active {
+          color: #667eea;
+          background: rgba(102, 126, 234, 0.2);
+        }
+        &:hover {
+          color: #667eea;
+        }
       }
 
-      .el-tabs__content { padding: 20px; }
+      .el-tabs__content {
+        padding: 20px;
+      }
     }
 
     ::v-deep .el-table {
       background: transparent;
       color: #fff;
-      &::before { display: none; }
-      th { background: rgba(102, 126, 234, 0.1); color: #8b8ba7; border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-      td { border-bottom: 1px solid rgba(102, 126, 234, 0.1); }
-      tr { background: transparent; &:hover > td { background: rgba(102, 126, 234, 0.1); } }
-      .el-table__row--striped td { background: rgba(102, 126, 234, 0.05); }
+      &::before {
+        display: none;
+      }
+      th {
+        background: rgba(102, 126, 234, 0.1);
+        color: #8b8ba7;
+        border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+      }
+      td {
+        border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+      }
+      tr {
+        background: transparent;
+        &:hover > td {
+          background: rgba(102, 126, 234, 0.1);
+        }
+      }
+      .el-table__row--striped td {
+        background: rgba(102, 126, 234, 0.05);
+      }
     }
   }
 
@@ -495,22 +521,47 @@ export default {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    span { color: #fff; font-weight: 500; }
+    span {
+      color: #fff;
+      font-weight: 500;
+    }
   }
 
   .list-section {
     background: rgba(102, 126, 234, 0.05);
     padding: 20px;
     border-radius: 8px;
-    h4 { color: #fff; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
-    .tip { color: #6b6b80; font-size: 12px; margin-bottom: 10px; }
+    h4 {
+      color: #fff;
+      margin: 0 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tip {
+      color: #6b6b80;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
   }
 
-  .highlight { color: #667eea; font-weight: 600; }
-  .success-text { color: #67c23a; }
-  .warning-text { color: #e6a23c; }
-  .danger-btn { color: #f56c6c !important; }
-  .unit { color: #8b8ba7; margin-left: 10px; }
+  .highlight {
+    color: #667eea;
+    font-weight: 600;
+  }
+  .success-text {
+    color: #67c23a;
+  }
+  .warning-text {
+    color: #e6a23c;
+  }
+  .danger-btn {
+    color: #f56c6c !important;
+  }
+  .unit {
+    color: #8b8ba7;
+    margin-left: 10px;
+  }
 
   code {
     background: rgba(102, 126, 234, 0.1);
@@ -524,15 +575,26 @@ export default {
 ::v-deep .el-dialog {
   background: #1a1a2e;
   border: 1px solid rgba(102, 126, 234, 0.3);
-  .el-dialog__header { border-bottom: 1px solid rgba(102, 126, 234, 0.2); }
-  .el-dialog__title { color: #fff; }
-  .el-form-item__label { color: #8b8ba7; }
-  .el-input__inner, .el-textarea__inner {
+  .el-dialog__header {
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+  }
+  .el-dialog__title {
+    color: #fff;
+  }
+  .el-form-item__label {
+    color: #8b8ba7;
+  }
+  .el-input__inner,
+  .el-textarea__inner {
     background: rgba(35, 35, 55, 0.8);
     border-color: rgba(102, 126, 234, 0.3);
     color: #fff;
   }
-  .tip { color: #6b6b80; font-size: 12px; margin-top: 5px; }
+  .tip {
+    color: #6b6b80;
+    font-size: 12px;
+    margin-top: 5px;
+  }
 }
 
 ::v-deep .el-textarea__inner {

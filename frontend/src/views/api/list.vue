@@ -3,7 +3,7 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <h2>原子接口列表</h2>
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">新增接口</el-button>
+      <el-button v-permission="'api:create'" type="primary" icon="el-icon-plus" @click="handleAdd">新增接口</el-button>
     </div>
 
     <!-- 搜索栏 -->
@@ -35,7 +35,7 @@
 
     <!-- 表格 -->
     <el-card class="table-card">
-      <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
+      <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column prop="name" label="接口名称" min-width="150">
           <template slot-scope="scope">
             <span class="api-name" @click="handleDetail(scope.row)">{{ scope.row.name }}</span>
@@ -73,32 +73,20 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template slot-scope="scope">
             <el-button type="text" size="small" @click="handleDetail(scope.row)">详情/编辑</el-button>
-            <el-button type="text" size="small" @click="handleTest(scope.row)">调试</el-button>
-            <el-button type="text" size="small" @click="handleClone(scope.row)">克隆</el-button>
-            <el-button type="text" size="small" class="danger-btn" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button v-permission="'api:test'" type="text" size="small" @click="handleTest(scope.row)">调试</el-button>
+            <el-button v-permission="'api:create'" type="text" size="small" @click="handleClone(scope.row)">克隆</el-button>
+            <el-button v-permission="'api:delete'" type="text" size="small" class="danger-btn" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        class="pagination"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-        :current-page="pagination.page"
-        :page-sizes="[10, 20, 50, 100]"
-        :page-size="pagination.pageSize"
-        layout="total, sizes, prev, pager, next"
-        :total="pagination.total">
+      <el-pagination class="pagination" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="pagination.page" :page-sizes="[10, 20, 50, 100]" :page-size="pagination.pageSize" layout="total, sizes, prev, pager, next" :total="pagination.total">
       </el-pagination>
     </el-card>
 
     <!-- 接口调试抽屉 -->
-    <el-drawer
-      title="接口调试"
-      :visible.sync="testDrawerVisible"
-      size="600px"
-      direction="rtl">
+    <el-drawer title="接口调试" :visible.sync="testDrawerVisible" size="600px" direction="rtl">
       <div class="test-panel" v-if="currentApi">
         <div class="test-header">
           <el-tag :type="getMethodType(currentApi.method)" effect="dark">{{ currentApi.method }}</el-tag>
@@ -126,11 +114,7 @@
               <el-button type="text" icon="el-icon-plus" @click="addParam('header')">添加参数</el-button>
             </el-tab-pane>
             <el-tab-pane label="Body" name="body">
-              <el-input
-                type="textarea"
-                v-model="testParams.body"
-                :rows="8"
-                placeholder='请输入JSON格式的请求体，如：{"key": "value"}'>
+              <el-input type="textarea" v-model="testParams.body" :rows="8" placeholder='请输入JSON格式的请求体，如：{"key": "value"}'>
               </el-input>
             </el-tab-pane>
           </el-tabs>
@@ -315,8 +299,8 @@ export default {
       try {
         const params = {
           apiId: this.currentApi.id,
-          queryParams: this.testParams.query.filter(p => p.key),
-          headers: this.testParams.header.filter(p => p.key),
+          queryParams: this.testParams.query.filter((p) => p.key),
+          headers: this.testParams.header.filter((p) => p.key),
           body: this.testParams.body
         }
         const startTime = Date.now()

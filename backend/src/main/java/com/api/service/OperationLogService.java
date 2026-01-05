@@ -31,4 +31,9 @@ public interface OperationLogService {
    * 清理过期日志
    */
   void cleanExpiredLogs(int days);
+
+  /**
+   * 导出日志
+   */
+  String exportLogs(Map<String, Object> params);
 }

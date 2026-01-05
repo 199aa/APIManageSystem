@@ -72,6 +72,32 @@
     LIMIT #{params.offset}, #{params.limit}
   </select>
   
+  <select id="selectAll" resultMap="BaseResultMap">
+    SELECT <include refid="Base_Column_List" />
+    FROM operation_log
+    <where>
+      <if test="params.username != null and params.username != ''">
+        AND username LIKE CONCAT('%', #{params.username}, '%')
+      </if>
+      <if test="params.operType != null and params.operType != ''">
+        AND oper_type = #{params.operType}
+      </if>
+      <if test="params.module != null and params.module != ''">
+        AND module = #{params.module}
+      </if>
+      <if test="params.status != null">
+        AND status = #{params.status}
+      </if>
+      <if test="params.startDate != null">
+        AND oper_time &gt;= #{params.startDate}
+      </if>
+      <if test="params.endDate != null">
+        AND oper_time &lt;= #{params.endDate}
+      </if>
+    </where>
+    ORDER BY oper_time DESC
+  </select>
+  
   <select id="countByCondition" resultType="int">
     SELECT COUNT(*)
     FROM operation_log

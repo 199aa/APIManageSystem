@@ -83,6 +83,7 @@ public class PlatformController {
     /**
      * 保存平台（新增/编辑）
      */
+    @com.api.annotation.OperationLog(type = "SAVE", module = "platform", description = "保存平台")
     @PostMapping("/save")
     public Result save(@RequestBody Platform platform) {
         try {
@@ -113,6 +114,7 @@ public class PlatformController {
     /**
      * 删除平台
      */
+    @com.api.annotation.OperationLog(type = "DELETE", module = "platform", description = "删除平台")
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable Long id) {
         platformMapper.deleteById(id);
@@ -122,6 +124,7 @@ public class PlatformController {
     /**
      * 切换平台状态
      */
+    @com.api.annotation.OperationLog(type = "UPDATE", module = "platform", description = "切换平台状态")
     @PutMapping("/{id}/status")
     public Result toggleStatus(@PathVariable Long id, @RequestParam Integer status) {
         platformMapper.updateStatus(id, status);
@@ -131,6 +134,7 @@ public class PlatformController {
     /**
      * 健康检测 - 测试平台连接
      */
+    @com.api.annotation.OperationLog(type = "CHECK", module = "platform", description = "平台健康检测")
     @PostMapping("/{id}/health-check")
     public Result healthCheck(@PathVariable Long id) {
         try {
@@ -154,6 +158,7 @@ public class PlatformController {
     /**
      * 同步API接口 - 从Swagger文档导入
      */
+    @com.api.annotation.OperationLog(type = "SYNC", module = "platform", description = "同步平台API")
     @PostMapping("/{id}/sync-apis")
     public Result syncApis(@PathVariable Long id) {
         try {

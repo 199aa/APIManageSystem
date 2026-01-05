@@ -36,6 +36,7 @@ public class PlatformProxyService {
 
     /**
      * 健康检测 - 测试平台连通性
+     * 
      * @param platform 平台信息
      * @return 检测结果 {success: true/false, message: "", responseTime: 123}
      */
@@ -53,11 +54,10 @@ public class PlatformProxyService {
 
             // 发送请求
             ResponseEntity<String> response = restTemplate.exchange(
-                healthUrl,
-                HttpMethod.GET,
-                entity,
-                String.class
-            );
+                    healthUrl,
+                    HttpMethod.GET,
+                    entity,
+                    String.class);
 
             long responseTime = System.currentTimeMillis() - startTime;
 
@@ -78,15 +78,15 @@ public class PlatformProxyService {
             long responseTime = System.currentTimeMillis() - startTime;
             int statusCode = e.getRawStatusCode();
             boolean success = statusCode == 404; // 404说明服务在线，只是路径不存在
-            
+
             result.put("success", success);
             result.put("statusCode", statusCode);
             result.put("responseTime", responseTime);
             result.put("message", success ? "服务在线（路径未配置）" : "HTTP " + statusCode);
-            
+
             updateStatusCache(platform.getId(), success ? "ONLINE" : "OFFLINE");
             return result;
-            
+
         } catch (org.springframework.web.client.HttpServerErrorException e) {
             // 5xx错误 - 服务器错误（但说明连接成功）
             long responseTime = System.currentTimeMillis() - startTime;
@@ -94,16 +94,16 @@ public class PlatformProxyService {
             result.put("statusCode", e.getRawStatusCode());
             result.put("responseTime", responseTime);
             result.put("message", "服务器错误 HTTP " + e.getRawStatusCode());
-            
+
             updateStatusCache(platform.getId(), "OFFLINE");
             return result;
-            
+
         } catch (org.springframework.web.client.ResourceAccessException e) {
             // 连接超时或网络不可达
             long responseTime = System.currentTimeMillis() - startTime;
             result.put("success", false);
             result.put("responseTime", responseTime);
-            
+
             String message = "网络不可达";
             if (e.getMessage().contains("timeout")) {
                 message = "连接超时";
@@ -111,10 +111,10 @@ public class PlatformProxyService {
                 message = "域名解析失败";
             }
             result.put("message", message);
-            
+
             updateStatusCache(platform.getId(), "OFFLINE");
             return result;
-            
+
         } catch (Exception e) {
             long responseTime = System.currentTimeMillis() - startTime;
             result.put("success", false);
@@ -129,10 +129,11 @@ public class PlatformProxyService {
 
     /**
      * 执行带认证的HTTP请求
+     * 
      * @param platform 平台信息
-     * @param path 请求路径
-     * @param method HTTP方法
-     * @param body 请求体
+     * @param path     请求路径
+     * @param method   HTTP方法
+     * @param body     请求体
      * @return 响应结果
      */
     public ResponseEntity<String> executeRequest(Platform platform, String path, HttpMethod method, String body) {

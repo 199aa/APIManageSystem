@@ -47,4 +47,9 @@ CREATE TABLE IF NOT EXISTS `alert_rule` (
 INSERT INTO alert_rule (name, type, level, `condition`, target, target_id, status) VALUES
 ('API错误率告警', 'error_rate', 'critical', '{"threshold": 5, "window": "5m"}', 'api', NULL, 1),
 ('API响应时间告警', 'response_time', 'warning', '{"threshold": 1000, "window": "5m"}', 'api', NULL, 1),
-('平台流量异常', 'traffic', 'warning', '{"threshold_type": "drop", "percent": 50, "window": "10m"}', 'platform', NULL, 1);
+('平台流量异常', 'traffic', 'info', '{"threshold_type": "drop", "percent": 50, "window": "10m"}', 'platform', NULL, 1);
+
+-- 插入一些测试告警记录（模拟实际触发的告警）
+INSERT INTO alert (rule_name, level, content, target, status, alert_time, api_id, details) VALUES
+('API响应时间告警', 'warning', 'API /api/user/info 平均响应时间超过1000ms，当前值：1250ms', 'API: /api/user/info', 'firing', NOW() - INTERVAL 10 MINUTE, 1, '{"current_value": 1250, "threshold": 1000, "duration": "5m"}'),
+('平台流量异常', 'info', '平台「百度」调用量在过去10分钟下降60%', '平台: 百度', 'firing', NOW() - INTERVAL 5 MINUTE, NULL, '{"platform_id": 1, "drop_percent": 60, "window": "10m"}');

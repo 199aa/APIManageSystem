@@ -92,4 +92,31 @@ public class OperationLogController {
       return Result.error(e.getMessage());
     }
   }
+
+  /**
+   * 导出操作日志
+   */
+  @GetMapping("/export")
+  public Result<String> exportLogs(
+      @RequestParam(required = false) String username,
+      @RequestParam(required = false) String operType,
+      @RequestParam(required = false) String module,
+      @RequestParam(required = false) Integer status,
+      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date startDate,
+      @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") Date endDate) {
+    try {
+      Map<String, Object> params = new HashMap<>();
+      params.put("username", username);
+      params.put("operType", operType);
+      params.put("module", module);
+      params.put("status", status);
+      params.put("startDate", startDate);
+      params.put("endDate", endDate);
+
+      String filePath = operationLogService.exportLogs(params);
+      return Result.success(filePath);
+    } catch (Exception e) {
+      return Result.error(e.getMessage());
+    }
+  }
 }

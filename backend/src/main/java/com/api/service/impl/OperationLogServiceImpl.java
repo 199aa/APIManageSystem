@@ -63,4 +63,34 @@ public class OperationLogServiceImpl implements OperationLogService {
     Date expiredDate = calendar.getTime();
     operationLogMapper.deleteBeforeDate(expiredDate);
   }
+
+  @Override
+  public String exportLogs(Map<String, Object> params) {
+    // 查询所有符合条件的日志（不分页）
+    List<OperationLog> logs = operationLogMapper.selectAll(params);
+    
+    // 生成CSV内容
+    StringBuilder csv = new StringBuilder();
+    csv.append("操作时间,操作用户,操作类型,操作模块,操作描述,操作IP,状态,耗时(ms)\n");
+    
+    for (OperationLog log : logs) {
+      csv.append(formatDate(log.getOperTime())).append(",")
+         .append(log.getUsername() != null ? log.getUsername() : "").append(",")
+         .append(log.getOperType() != null ? log.getOperType() : "").append(",")
+         .append(log.getModule() != null ? log.getModule() : "").append(",")
+         .append(log.getDescription() != null ? log.getDescription().replace(",", "，") : "").append(",")
+         .append(log.getIp() != null ? log.getIp() : "").append(",")
+         .append(log.getStatus() == 1 ? "成功" : "失败").append(",")
+         .append(log.getCostTime() != null ? log.getCostTime() : 0)
+         .append("\n");
+    }
+    
+    return csv.toString();
+  }
+
+  private String formatDate(Date date) {
+    if (date == null) return "";
+    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    return sdf.format(date);
+  }
 }

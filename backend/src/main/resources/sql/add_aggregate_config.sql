@@ -1,16 +1,13 @@
 -- 为聚合接口管理添加配置字段
 -- 执行时间: 2026-01-03
 -- 说明: 扩展api_info表，支持聚合接口的动态编排和管理
-
 USE api_manage;
-
 -- 添加聚合配置字段（存储JSON格式的编排配置）
-ALTER TABLE `api_info` 
-ADD COLUMN `aggregate_config` TEXT NULL COMMENT '聚合接口配置(JSON格式)' AFTER `response_example`;
-
+ALTER TABLE `api_info`
+ADD COLUMN `aggregate_config` TEXT NULL COMMENT '聚合接口配置(JSON格式)'
+AFTER `response_example`;
 -- 查看修改结果
 DESCRIBE api_info;
-
 -- aggregate_config 字段存储格式示例：
 -- {
 --   "executeMode": "serial",  // serial: 串行, parallel: 并行

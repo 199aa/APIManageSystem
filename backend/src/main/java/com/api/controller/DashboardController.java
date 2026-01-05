@@ -109,9 +109,9 @@ public class DashboardController {
       for (ApiCallLog log : logs) {
         Map<String, Object> item = new HashMap<>();
         item.put("time", sdf.format(log.getCallTime()));
-        item.put("apiName", log.getApiPath());
+        item.put("apiPath", log.getApiPath());
         item.put("platform", log.getPlatformName() != null ? log.getPlatformName() : "本地");
-        item.put("errorCode", String.valueOf(log.getStatusCode()));
+        item.put("statusCode", log.getStatusCode());
         item.put("errorMsg", log.getErrorMsg());
         result.add(item);
       }

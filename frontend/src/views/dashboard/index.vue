@@ -65,7 +65,6 @@
               <div class="error-time">{{ log.time }}</div>
               <div class="error-info">
                 <div class="error-api">
-                  <el-tag :type="getMethodType(log.method)" size="mini" effect="dark">{{ log.method }}</el-tag>
                   <span class="api-path">{{ log.apiPath }}</span>
                 </div>
                 <div class="error-msg">{{ log.errorMsg }}</div>

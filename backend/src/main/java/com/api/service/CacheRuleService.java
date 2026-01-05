@@ -51,8 +51,8 @@ public class CacheRuleService {
                 if (rule != null && rule.getCacheKey() != null) {
                     // 这里简化处理，实际应该根据cacheKey的模式匹配删除
                     String pattern = rule.getCacheKey().replace("${apiPath}", "*")
-                                                       .replace("${userId}", "*")
-                                                       .replace("${params.*}", "*");
+                            .replace("${userId}", "*")
+                            .replace("${params.*}", "*");
                     Set<String> keys = redisTemplate.keys(pattern);
                     if (keys != null && !keys.isEmpty()) {
                         redisTemplate.delete(keys);

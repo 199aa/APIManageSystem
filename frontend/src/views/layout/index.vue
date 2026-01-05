@@ -8,78 +8,25 @@
           <span v-else>API</span>
         </div>
         <el-menu :default-active="activeMenu" :collapse="isCollapse" :unique-opened="true" router text-color="#bfcbd9" active-text-color="#667eea">
-          <el-menu-item index="/dashboard">
-            <i class="el-icon-s-home"></i>
-            <span slot="title">首页</span>
-          </el-menu-item>
-          
-          <!-- 平台接入 -->
-          <el-submenu index="platform">
-            <template slot="title">
-              <i class="el-icon-connection"></i>
-              <span>平台接入</span>
-            </template>
-            <el-menu-item index="/platform/list">平台列表</el-menu-item>
-          </el-submenu>
-          
-          <!-- API仓库 -->
-          <el-submenu index="api">
-            <template slot="title">
-              <i class="el-icon-s-order"></i>
-              <span>API仓库</span>
-            </template>
-            <el-menu-item index="/api/list">原子接口列表</el-menu-item>
-          </el-submenu>
-          
-          <!-- 服务编排 -->
-          <el-submenu index="orchestration">
-            <template slot="title">
-              <i class="el-icon-s-operation"></i>
-              <span>服务编排</span>
-            </template>
-            <el-menu-item index="/orchestration/aggregate">聚合接口管理</el-menu-item>
-          </el-submenu>
-          
-          <!-- 治理中心 -->
-          <el-submenu index="governance">
-            <template slot="title">
-              <i class="el-icon-s-tools"></i>
-              <span>治理中心</span>
-            </template>
-            <el-menu-item index="/governance/rate-limit">限流策略</el-menu-item>
-            <el-menu-item index="/governance/blacklist">黑白名单</el-menu-item>
-            <el-menu-item index="/governance/cache">缓存策略</el-menu-item>
-          </el-submenu>
-          
-          <!-- 客户管理 -->
-          <el-submenu index="customer">
-            <template slot="title">
-              <i class="el-icon-user"></i>
-              <span>客户管理</span>
-            </template>
-            <el-menu-item index="/customer/apps">应用列表</el-menu-item>
-          </el-submenu>
-          
-          <!-- 运维监控 -->
-          <el-submenu index="monitor">
-            <template slot="title">
-              <i class="el-icon-data-line"></i>
-              <span>运维监控</span>
-            </template>
-            <el-menu-item index="/monitor/logs">调用日志</el-menu-item>
-            <el-menu-item index="/monitor/alerts">告警中心</el-menu-item>
-          </el-submenu>
-          
-          <!-- 系统管理 -->
-          <el-submenu index="system">
-            <template slot="title">
-              <i class="el-icon-setting"></i>
-              <span>系统管理</span>
-            </template>
-            <el-menu-item index="/system/users">用户管理</el-menu-item>
-            <el-menu-item index="/system/roles">角色管理</el-menu-item>
-            <el-menu-item index="/system/logs">操作日志</el-menu-item>
-          </el-submenu>
+          <!-- 动态菜单 -->
+          <template v-for="menu in visibleMenus">
+            <!-- 无子菜单 -->
+            <el-menu-item v-if="!menu.children || menu.children.length === 0" :key="menu.path" :index="menu.path">
+              <i :class="menu.icon"></i>
+              <span slot="title">{{ menu.title }}</span>
+            </el-menu-item>
+
+            <!-- 有子菜单 -->
+            <el-submenu v-else :key="menu.path" :index="menu.name">
+              <template slot="title">
+                <i :class="menu.icon"></i>
+                <span>{{ menu.title }}</span>
+              </template>
+              <el-menu-item v-for="child in menu.children" :key="child.path" :index="child.path">
+                {{ child.title }}
+              </el-menu-item>
+            </el-submenu>
+          </template>
         </el-menu>
       </el-aside>
 
@@ -116,6 +63,8 @@
 </template>
 
 <script>
+import { menuConfig, filterMenus } from '@/config/menu'
+
 export default {
   name: 'Layout',
   data() {
@@ -126,6 +75,16 @@ export default {
   computed: {
     userInfo() {
       return this.$store.state.user.userInfo
+    },
+    permissions() {
+      return this.$store.state.user.permissions
+    },
+    roleId() {
+      return this.$store.state.user.userInfo.roleId
+    },
+    // 根据权限过滤菜单
+    visibleMenus() {
+      return filterMenus(menuConfig, this.permissions, this.roleId)
     },
     activeMenu() {
       const route = this.$route

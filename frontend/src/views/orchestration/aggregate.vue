@@ -26,11 +26,7 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template slot-scope="scope">
-            <el-switch
-              v-model="scope.row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleStatusChange(scope.row)">
+            <el-switch v-model="scope.row.status" :active-value="1" :inactive-value="0" @change="handleStatusChange(scope.row)">
             </el-switch>
           </template>
         </el-table-column>
@@ -48,13 +44,7 @@
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        class="pagination"
-        @current-change="handlePageChange"
-        :current-page="page"
-        :page-size="pageSize"
-        layout="total, prev, pager, next"
-        :total="total">
+      <el-pagination class="pagination" @current-change="handlePageChange" :current-page="page" :page-size="pageSize" layout="total, prev, pager, next" :total="total">
       </el-pagination>
     </el-card>
 
@@ -119,14 +109,14 @@ export default {
           page: this.page,
           pageSize: this.pageSize
         })
-        
+
         if (res.code === 200) {
           const data = res.data
           this.tableData = data.list || []
           this.total = data.total || 0
-          
+
           // 解析aggregate_config获取子API数量
-          this.tableData.forEach(item => {
+          this.tableData.forEach((item) => {
             if (item.aggregateConfig) {
               try {
                 const config = JSON.parse(item.aggregateConfig)
@@ -148,7 +138,7 @@ export default {
         this.loading = false
       }
     },
-    
+
     formatTime(time) {
       if (!time) return '-'
       return new Date(time).toLocaleString('zh-CN', {
@@ -159,14 +149,14 @@ export default {
         minute: '2-digit'
       })
     },
-    
+
     handleCreate() {
       this.createForm = { name: '', path: '', description: '' }
       this.createDialogVisible = true
     },
-    
+
     async submitCreate() {
-      this.$refs.createForm.validate(async valid => {
+      this.$refs.createForm.validate(async (valid) => {
         if (valid) {
           try {
             const res = await createAggregate(this.createForm)
@@ -185,21 +175,21 @@ export default {
         }
       })
     },
-    
+
     handleEdit(row) {
       this.$router.push(`/orchestration/design/${row.id}`)
     },
-    
+
     handleTest(row) {
       // 跳转到编排页面的测试模式
       this.$router.push(`/orchestration/design/${row.id}?mode=test`)
     },
-    
+
     async handleStatusChange(row) {
       try {
         const api = row.status === 1 ? publishAggregate : offlineAggregate
         const res = await api(row.id)
-        
+
         if (res.code === 200) {
           this.$message.success(res.message || `已${row.status === 1 ? '发布' : '下线'}`)
         } else {
@@ -214,7 +204,7 @@ export default {
         row.status = row.status === 1 ? 0 : 1
       }
     },
-    
+
     handleDelete(row) {
       this.$confirm('确定要删除该聚合接口吗？删除后无法恢复。', '提示', {
         type: 'warning',
@@ -237,7 +227,7 @@ export default {
         })
         .catch(() => {})
     },
-    
+
     handlePageChange(page) {
       this.page = page
       this.loadData()
@@ -272,7 +262,9 @@ export default {
       background: transparent;
       color: #fff;
 
-      &::before { display: none; }
+      &::before {
+        display: none;
+      }
 
       th {
         background: rgba(102, 126, 234, 0.1);
@@ -286,7 +278,9 @@ export default {
 
       tr {
         background: transparent;
-        &:hover > td { background: rgba(102, 126, 234, 0.1); }
+        &:hover > td {
+          background: rgba(102, 126, 234, 0.1);
+        }
       }
 
       .el-table__row--striped td {
@@ -298,7 +292,9 @@ export default {
   .link-text {
     color: #667eea;
     cursor: pointer;
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 
   .path-code {
@@ -325,7 +321,9 @@ export default {
       background: transparent;
       color: #8b8ba7;
     }
-    ::v-deep .el-pager li.active { color: #667eea; }
+    ::v-deep .el-pager li.active {
+      color: #667eea;
+    }
   }
 }
 
@@ -337,9 +335,13 @@ export default {
     border-bottom: 1px solid rgba(102, 126, 234, 0.2);
   }
 
-  .el-dialog__title { color: #fff; }
+  .el-dialog__title {
+    color: #fff;
+  }
 
-  .el-form-item__label { color: #8b8ba7; }
+  .el-form-item__label {
+    color: #8b8ba7;
+  }
 
   .el-input__inner,
   .el-textarea__inner {

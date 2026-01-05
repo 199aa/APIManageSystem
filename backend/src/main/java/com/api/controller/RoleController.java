@@ -66,7 +66,7 @@ public class RoleController {
    * 创建角色
    */
   @PostMapping
-  @OperationLog(type = "CREATE", module = "role", description = "创建角色")
+  @OperationLog(type = "CREATE", module = "角色管理", description = "创建角色")
   public Result<Role> createRole(@RequestBody Role role) {
     try {
       Role newRole = roleService.createRole(role);
@@ -80,7 +80,7 @@ public class RoleController {
    * 更新角色
    */
   @PutMapping
-  @OperationLog(type = "UPDATE", module = "role", description = "更新角色")
+  @OperationLog(type = "UPDATE", module = "角色管理", description = "更新角色")
   public Result<Role> updateRole(@RequestBody Role role) {
     try {
       Role updatedRole = roleService.updateRole(role);
@@ -94,7 +94,7 @@ public class RoleController {
    * 删除角色
    */
   @DeleteMapping("/{id}")
-  @OperationLog(type = "DELETE", module = "role", description = "删除角色")
+  @OperationLog(type = "DELETE", module = "角色管理", description = "删除角色")
   public Result<Void> deleteRole(@PathVariable Long id) {
     try {
       roleService.deleteRole(id);
@@ -108,6 +108,7 @@ public class RoleController {
    * 批量删除角色
    */
   @DeleteMapping("/batch")
+  @OperationLog(type = "DELETE", module = "角色管理", description = "批量删除角色")
   public Result<Void> deleteBatch(@RequestBody List<Long> ids) {
     try {
       roleService.deleteBatch(ids);

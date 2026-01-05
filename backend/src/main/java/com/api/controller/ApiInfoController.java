@@ -2,8 +2,10 @@ package com.api.controller;
 
 import com.api.common.Result;
 import com.api.model.ApiInfo;
+import com.api.model.ApiCallLog;
 import com.api.mapper.ApiInfoMapper;
 import com.api.mapper.PlatformMapper;
+import com.api.mapper.ApiCallLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,6 +22,9 @@ public class ApiInfoController {
 
   @Autowired
   private PlatformMapper platformMapper;
+
+  @Autowired
+  private ApiCallLogMapper apiCallLogMapper;
 
   /**
    * 获取API列表（分页）
@@ -58,6 +63,7 @@ public class ApiInfoController {
   /**
    * 保存API（新增/编辑）
    */
+  @com.api.annotation.OperationLog(type = "SAVE", module = "api", description = "保存API")
   @PostMapping("/save")
   public Result save(@RequestBody ApiInfo apiInfo) {
     if (apiInfo.getId() == null) {
@@ -71,6 +77,7 @@ public class ApiInfoController {
   /**
    * 删除API
    */
+  @com.api.annotation.OperationLog(type = "DELETE", module = "api", description = "删除API")
   @DeleteMapping("/{id}")
   public Result delete(@PathVariable Long id) {
     apiInfoMapper.deleteById(id);
@@ -80,6 +87,7 @@ public class ApiInfoController {
   /**
    * 克隆API
    */
+  @com.api.annotation.OperationLog(type = "CLONE", module = "api", description = "克隆API")
   @PostMapping("/{id}/clone")
   public Result clone(@PathVariable Long id) {
     ApiInfo original = apiInfoMapper.selectById(id);
@@ -95,8 +103,28 @@ public class ApiInfoController {
   /**
    * 测试API（简单模拟）
    */
+  @com.api.annotation.OperationLog(type = "TEST", module = "api", description = "测试API")
   @PostMapping("/test")
   public Result test(@RequestBody Map<String, Object> params) {
+    long startTime = System.currentTimeMillis();
+    
+    // 获取API ID
+    Object apiIdObj = params.get("apiId");
+    Long apiId = null;
+    if (apiIdObj != null) {
+      if (apiIdObj instanceof Integer) {
+        apiId = ((Integer) apiIdObj).longValue();
+      } else if (apiIdObj instanceof Long) {
+        apiId = (Long) apiIdObj;
+      }
+    }
+    
+    // 获取API信息
+    ApiInfo apiInfo = null;
+    if (apiId != null) {
+      apiInfo = apiInfoMapper.selectById(apiId);
+    }
+    
     // 这里可以实现真实的HTTP调用逻辑
     // 目前返回模拟数据
     Map<String, Object> response = new HashMap<>();
@@ -113,6 +141,30 @@ public class ApiInfoController {
     result.put("data", data);
 
     response.put("response", result);
+    
+    // 记录API调用日志
+    long costTime = System.currentTimeMillis() - startTime;
+    ApiCallLog log = new ApiCallLog();
+    if (apiInfo != null) {
+      log.setApiPath(apiInfo.getPath());
+      log.setApiName(apiInfo.getName());
+    } else {
+      log.setApiPath("/api-info/test");
+      log.setApiName("测试接口");
+    }
+    log.setResponseTime((int) costTime);
+    log.setStatusCode(200);
+    log.setIsSuccess(1);
+    
+    // 异步插入日志，不阻塞响应
+    new Thread(() -> {
+      try {
+        apiCallLogMapper.insert(log);
+      } catch (Exception e) {
+        System.err.println("插入API调用日志失败: " + e.getMessage());
+      }
+    }).start();
+    
     return Result.success(response);
   }
 }

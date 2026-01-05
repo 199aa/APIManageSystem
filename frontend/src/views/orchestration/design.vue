@@ -22,13 +22,7 @@
           <el-input v-model="apiSearch" size="small" placeholder="搜索API" prefix-icon="el-icon-search"></el-input>
         </div>
         <div class="api-list">
-          <div
-            v-for="api in filteredApis"
-            :key="api.id"
-            class="api-item"
-            draggable="true"
-            @dragstart="handleDragStart($event, api)"
-            @dragend="handleDragEnd">
+          <div v-for="api in filteredApis" :key="api.id" class="api-item" draggable="true" @dragstart="handleDragStart($event, api)" @dragend="handleDragEnd">
             <el-tag :type="getMethodType(api.method)" size="mini" effect="dark">{{ api.method }}</el-tag>
             <span class="api-name">{{ api.name }}</span>
           </div>
@@ -211,11 +205,7 @@
       <el-row :gutter="20">
         <el-col :span="12">
           <h4>输入参数 (JSON)</h4>
-          <el-input 
-            type="textarea" 
-            v-model="testParams" 
-            :rows="12" 
-            placeholder='{"userId": "123", "orderId": "456"}'>
+          <el-input type="textarea" v-model="testParams" :rows="12" placeholder='{"userId": "123", "orderId": "456"}'>
           </el-input>
           <div style="margin-top: 10px;">
             <el-button type="primary" :loading="testLoading" @click="executeTest">执行</el-button>
@@ -224,11 +214,7 @@
         <el-col :span="12">
           <h4>执行结果</h4>
           <div v-if="testResult" class="test-result">
-            <el-alert 
-              :type="testResult.success ? 'success' : 'error'" 
-              :title="testResult.success ? '执行成功' : '执行失败'"
-              :closable="false"
-              style="margin-bottom: 10px;">
+            <el-alert :type="testResult.success ? 'success' : 'error'" :title="testResult.success ? '执行成功' : '执行失败'" :closable="false" style="margin-bottom: 10px;">
             </el-alert>
             <pre v-if="testResult.success" class="result-json">{{ JSON.stringify(testResult.data, null, 2) }}</pre>
             <el-alert v-else type="error" :title="testResult.error" :closable="false"></el-alert>
@@ -269,10 +255,7 @@ export default {
   computed: {
     filteredApis() {
       if (!this.apiSearch) return this.apiList
-      return this.apiList.filter(api => 
-        api.name.toLowerCase().includes(this.apiSearch.toLowerCase()) ||
-        api.path.toLowerCase().includes(this.apiSearch.toLowerCase())
-      )
+      return this.apiList.filter((api) => api.name.toLowerCase().includes(this.apiSearch.toLowerCase()) || api.path.toLowerCase().includes(this.apiSearch.toLowerCase()))
     }
   },
   created() {
@@ -291,7 +274,7 @@ export default {
         if (res.code === 200) {
           // 过滤掉聚合接口，只显示原子接口
           const list = res.data.list || res.data || []
-          this.apiList = list.filter(api => api.isAggregate !== 1)
+          this.apiList = list.filter((api) => api.isAggregate !== 1)
         } else {
           this.$message.error('加载API列表失败')
         }
@@ -300,13 +283,13 @@ export default {
         this.$message.error('加载API列表失败')
       }
     },
-    
+
     async loadDesign(id) {
       try {
         const res = await getAggregateDetail(id)
         if (res.code === 200) {
           this.aggregateInfo = res.data
-          
+
           // 解析编排配置
           if (res.data.aggregateConfig) {
             const config = JSON.parse(res.data.aggregateConfig)
@@ -322,30 +305,30 @@ export default {
         this.$message.error('加载配置失败')
       }
     },
-    
+
     goBack() {
       this.$router.push('/orchestration/aggregate')
     },
-    
+
     getMethodType(method) {
       const types = { GET: 'success', POST: 'primary', PUT: 'warning', DELETE: 'danger' }
       return types[method] || 'info'
     },
-    
+
     handleDragStart(e, api) {
       this.draggingApi = api
       e.dataTransfer.effectAllowed = 'copy'
     },
-    
+
     handleDragEnd() {
       this.draggingApi = null
     },
-    
+
     handleDragOver(e) {
       e.preventDefault()
       e.dataTransfer.dropEffect = 'copy'
     },
-    
+
     handleDrop(e) {
       e.preventDefault()
       if (this.draggingApi) {
@@ -366,34 +349,36 @@ export default {
         this.$message.success(`已添加: ${this.draggingApi.name}`)
       }
     },
-    
+
     generateResponsePath(apiName) {
       // 生成响应路径，去除特殊字符
       const path = apiName.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '')
       return path.substring(0, 20).toLowerCase()
     },
-    
+
     editStartNode() {
       this.$prompt('请输入入参定义(JSON格式)', '配置开始节点', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         inputType: 'textarea',
         inputValue: JSON.stringify({ userId: { type: 'string', required: true } }, null, 2)
-      }).then(({ value }) => {
-        try {
-          JSON.parse(value)
-          this.$message.success('入参配置已保存')
-        } catch (e) {
-          this.$message.error('JSON格式不正确')
-        }
-      }).catch(() => {})
+      })
+        .then(({ value }) => {
+          try {
+            JSON.parse(value)
+            this.$message.success('入参配置已保存')
+          } catch (e) {
+            this.$message.error('JSON格式不正确')
+          }
+        })
+        .catch(() => {})
     },
-    
+
     editNode(node) {
       this.activeNodeId = node.nodeId
       this.activeNode = node
     },
-    
+
     removeNode(index) {
       const removed = this.flowNodes.splice(index, 1)[0]
       if (this.activeNode && this.activeNode.nodeId === removed.nodeId) {
@@ -402,30 +387,30 @@ export default {
       }
       this.$message.success('已移除节点')
     },
-    
+
     addParamMapping() {
       if (this.activeNode) {
         if (!this.activeNode.paramMappings) {
           this.activeNode.paramMappings = []
         }
-        this.activeNode.paramMappings.push({ 
-          source: 'input.', 
-          target: '', 
-          required: false 
+        this.activeNode.paramMappings.push({
+          source: 'input.',
+          target: '',
+          required: false
         })
       }
     },
-    
+
     removeParamMapping(index) {
       if (this.activeNode && this.activeNode.paramMappings) {
         this.activeNode.paramMappings.splice(index, 1)
       }
     },
-    
+
     openMappingEditor() {
       this.mappingDialogVisible = true
     },
-    
+
     saveMappingConfig() {
       try {
         if (this.outputSchema) {
@@ -437,29 +422,29 @@ export default {
         this.$message.error('JSON格式不正确')
       }
     },
-    
+
     handleTest() {
       if (this.flowNodes.length === 0) {
         this.$message.warning('请先添加API节点')
         return
       }
-      
+
       this.testParams = '{}'
       this.testResult = null
       this.testDialogVisible = true
     },
-    
+
     async executeTest() {
       if (!this.aggregateId) {
         this.$message.warning('请先保存聚合接口')
         return
       }
-      
+
       this.testLoading = true
       try {
         const params = JSON.parse(this.testParams)
         const res = await testAggregate(this.aggregateId, params)
-        
+
         if (res.code === 200) {
           this.testResult = {
             success: true,
@@ -484,18 +469,18 @@ export default {
         this.testLoading = false
       }
     },
-    
+
     async handleSave() {
       if (!this.aggregateInfo && !this.isNew) {
         this.$message.error('聚合接口信息缺失')
         return
       }
-      
+
       if (this.flowNodes.length === 0) {
         this.$message.warning('请至少添加一个API节点')
         return
       }
-      
+
       this.saving = true
       try {
         // 构建配置
@@ -505,7 +490,7 @@ export default {
           nodes: this.flowNodes,
           outputSchema: this.outputSchema ? JSON.parse(this.outputSchema) : {}
         }
-        
+
         const data = {
           id: this.aggregateId,
           name: this.aggregateInfo?.name,
@@ -513,7 +498,7 @@ export default {
           description: this.aggregateInfo?.description,
           aggregateConfig: JSON.stringify(config)
         }
-        
+
         const res = await saveAggregate(data)
         if (res.code === 200) {
           this.$message.success('保存成功')
@@ -533,13 +518,13 @@ export default {
         this.saving = false
       }
     },
-    
+
     handlePublish() {
       if (!this.aggregateId) {
         this.$message.warning('请先保存聚合接口')
         return
       }
-      
+
       this.$confirm('确定要发布该聚合接口吗？发布后将可以被调用。', '确认发布', {
         type: 'info',
         confirmButtonText: '发布',
@@ -939,7 +924,9 @@ export default {
   .el-dialog__header {
     border-bottom: 1px solid rgba(102, 126, 234, 0.2);
   }
-  .el-dialog__title { color: #fff; }
+  .el-dialog__title {
+    color: #fff;
+  }
 
   .el-textarea__inner {
     background: rgba(35, 35, 55, 0.8);

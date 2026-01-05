@@ -52,10 +52,10 @@ export default {
   },
   computed: {
     blacklistCount() {
-      return this.blacklistIPs.split('\n').filter(ip => ip.trim()).length
+      return this.blacklistIPs.split('\n').filter((ip) => ip.trim()).length
     },
     whitelistCount() {
-      return this.whitelistIPs.split('\n').filter(ip => ip.trim()).length
+      return this.whitelistIPs.split('\n').filter((ip) => ip.trim()).length
     }
   },
   mounted() {
@@ -78,7 +78,7 @@ export default {
     },
     async saveBlacklist() {
       try {
-        const ips = this.blacklistIPs.split('\n').filter(ip => ip.trim())
+        const ips = this.blacklistIPs.split('\n').filter((ip) => ip.trim())
         const res = await saveBlacklist(ips)
         if (res.code === 200) {
           this.$message.success('黑名单保存成功')
@@ -91,7 +91,7 @@ export default {
     },
     async saveWhitelist() {
       try {
-        const ips = this.whitelistIPs.split('\n').filter(ip => ip.trim())
+        const ips = this.whitelistIPs.split('\n').filter((ip) => ip.trim())
         const res = await saveWhitelist(ips)
         if (res.code === 200) {
           this.$message.success('白名单保存成功')
@@ -112,7 +112,11 @@ export default {
 
   .page-header {
     margin-bottom: 20px;
-    h2 { color: #fff; margin: 0; font-size: 20px; }
+    h2 {
+      color: #fff;
+      margin: 0;
+      font-size: 20px;
+    }
   }
 
   .content-card {
@@ -140,21 +144,38 @@ export default {
       align-items: center;
       gap: 10px;
       margin-bottom: 10px;
-      span { color: #fff; font-size: 16px; font-weight: 500; }
-      i { font-size: 20px; }
+      span {
+        color: #fff;
+        font-size: 16px;
+        font-weight: 500;
+      }
+      i {
+        font-size: 20px;
+      }
     }
 
-    &.blacklist .section-header i { color: #f56c6c; }
-    &.whitelist .section-header i { color: #67c23a; }
+    &.blacklist .section-header i {
+      color: #f56c6c;
+    }
+    &.whitelist .section-header i {
+      color: #67c23a;
+    }
 
-    .tip { color: #8b8ba7; font-size: 13px; margin-bottom: 15px; }
+    .tip {
+      color: #8b8ba7;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
 
     .section-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 15px;
-      .count { color: #8b8ba7; font-size: 13px; }
+      .count {
+        color: #8b8ba7;
+        font-size: 13px;
+      }
     }
   }
 

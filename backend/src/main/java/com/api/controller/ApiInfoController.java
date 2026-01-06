@@ -8,6 +8,9 @@ import com.api.mapper.PlatformMapper;
 import com.api.mapper.ApiCallLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,9 @@ public class ApiInfoController {
 
   @Autowired
   private ApiCallLogMapper apiCallLogMapper;
+
+  @Autowired
+  private RestTemplate restTemplate;
 
   /**
    * 获取API列表（分页）
@@ -107,7 +113,7 @@ public class ApiInfoController {
   @PostMapping("/test")
   public Result test(@RequestBody Map<String, Object> params) {
     long startTime = System.currentTimeMillis();
-    
+
     // 获取API ID
     Object apiIdObj = params.get("apiId");
     Long apiId = null;
@@ -118,44 +124,130 @@ public class ApiInfoController {
         apiId = (Long) apiIdObj;
       }
     }
-    
+
     // 获取API信息
     ApiInfo apiInfo = null;
     if (apiId != null) {
       apiInfo = apiInfoMapper.selectById(apiId);
     }
-    
-    // 这里可以实现真实的HTTP调用逻辑
-    // 目前返回模拟数据
+
+    if (apiInfo == null) {
+      return Result.error("API信息不存在");
+    }
+
     Map<String, Object> response = new HashMap<>();
-    response.put("statusCode", 200);
-    response.put("statusText", "OK");
+    int statusCode = 200;
+    String statusText = "OK";
+    Object responseData = null;
 
-    Map<String, Object> data = new HashMap<>();
-    data.put("id", 1);
-    data.put("name", "测试数据");
+    try {
+      // 优先使用前端传递的URL，如果没有则使用API配置的path
+      String baseUrl = params.containsKey("url") ? params.get("url").toString() : apiInfo.getPath();
 
-    Map<String, Object> result = new HashMap<>();
-    result.put("code", 200);
-    result.put("message", "success");
-    result.put("data", data);
+      // 确保URL是绝对路径
+      if (!baseUrl.startsWith("http://") && !baseUrl.startsWith("https://")) {
+        // 如果path只是相对路径，尝试从path中提取或使用默认的http://localhost
+        if (baseUrl.matches("^\\d+/.*")) {
+          // 格式: 8083/api/users -> http://localhost:8083/api/users
+          baseUrl = "http://localhost:" + baseUrl;
+        } else if (!baseUrl.startsWith("/")) {
+          // 格式: api/users -> http://localhost/api/users
+          baseUrl = "http://localhost/" + baseUrl;
+        } else {
+          // 格式: /api/users -> http://localhost/api/users
+          baseUrl = "http://localhost" + baseUrl;
+        }
+      }
 
-    response.put("response", result);
-    
+      // 获取查询参数
+      List<Map<String, String>> queryParams = (List<Map<String, String>>) params.get("queryParams");
+      if (queryParams != null && !queryParams.isEmpty()) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl);
+        for (Map<String, String> param : queryParams) {
+          String key = param.get("key");
+          String value = param.get("value");
+          if (key != null && !key.trim().isEmpty()) {
+            builder.queryParam(key, value);
+          }
+        }
+        baseUrl = builder.toUriString();
+      }
+
+      // 构建请求头
+      HttpHeaders headers = new HttpHeaders();
+      List<Map<String, String>> headerList = (List<Map<String, String>>) params.get("headers");
+      if (headerList != null && !headerList.isEmpty()) {
+        for (Map<String, String> header : headerList) {
+          String key = header.get("key");
+          String value = header.get("value");
+          if (key != null && !key.trim().isEmpty()) {
+            headers.add(key, value);
+          }
+        }
+      }
+
+      // 设置默认Content-Type
+      if (headers.getContentType() == null) {
+        headers.setContentType(MediaType.APPLICATION_JSON);
+      }
+
+      // 获取请求体
+      Object body = params.get("body");
+
+      // 构建请求
+      HttpEntity<?> requestEntity = new HttpEntity<>(body, headers);
+
+      // 根据方法类型发送请求
+      String method = apiInfo.getMethod().toUpperCase();
+      ResponseEntity<Object> responseEntity;
+
+      switch (method) {
+        case "GET":
+          responseEntity = restTemplate.exchange(baseUrl, HttpMethod.GET, requestEntity, Object.class);
+          break;
+        case "POST":
+          responseEntity = restTemplate.exchange(baseUrl, HttpMethod.POST, requestEntity, Object.class);
+          break;
+        case "PUT":
+          responseEntity = restTemplate.exchange(baseUrl, HttpMethod.PUT, requestEntity, Object.class);
+          break;
+        case "DELETE":
+          responseEntity = restTemplate.exchange(baseUrl, HttpMethod.DELETE, requestEntity, Object.class);
+          break;
+        default:
+          return Result.error("不支持的HTTP方法: " + method);
+      }
+
+      statusCode = responseEntity.getStatusCodeValue();
+      statusText = responseEntity.getStatusCode().getReasonPhrase();
+      responseData = responseEntity.getBody();
+
+    } catch (Exception e) {
+      statusCode = 500;
+      statusText = "Error";
+      Map<String, Object> errorData = new HashMap<>();
+      errorData.put("error", e.getMessage());
+      errorData.put("type", e.getClass().getSimpleName());
+      // 添加详细的堆栈信息用于调试
+      if (e.getCause() != null) {
+        errorData.put("cause", e.getCause().getMessage());
+      }
+      responseData = errorData;
+    }
+
+    response.put("statusCode", statusCode);
+    response.put("statusText", statusText);
+    response.put("response", responseData);
+
     // 记录API调用日志
     long costTime = System.currentTimeMillis() - startTime;
     ApiCallLog log = new ApiCallLog();
-    if (apiInfo != null) {
-      log.setApiPath(apiInfo.getPath());
-      log.setApiName(apiInfo.getName());
-    } else {
-      log.setApiPath("/api-info/test");
-      log.setApiName("测试接口");
-    }
+    log.setApiPath(apiInfo.getPath());
+    log.setApiName(apiInfo.getName());
     log.setResponseTime((int) costTime);
-    log.setStatusCode(200);
-    log.setIsSuccess(1);
-    
+    log.setStatusCode(statusCode);
+    log.setIsSuccess(statusCode >= 200 && statusCode < 300 ? 1 : 0);
+
     // 异步插入日志，不阻塞响应
     new Thread(() -> {
       try {
@@ -164,7 +256,7 @@ public class ApiInfoController {
         System.err.println("插入API调用日志失败: " + e.getMessage());
       }
     }).start();
-    
+
     return Result.success(response);
   }
 }

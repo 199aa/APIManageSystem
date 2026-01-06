@@ -288,7 +288,7 @@ export default {
     async handleExport() {
       try {
         this.$message.info('正在导出日志...')
-        
+
         const params = {
           username: this.searchForm.username || undefined,
           operType: this.searchForm.operType || undefined,
@@ -307,7 +307,7 @@ export default {
           // 添加BOM头以支持Excel正确显示中文
           const BOM = '\uFEFF'
           const csvData = BOM + res.data
-          
+
           // 创建CSV文件并下载
           const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' })
           const link = document.createElement('a')

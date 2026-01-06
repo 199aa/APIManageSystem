@@ -51,22 +51,12 @@
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        class="pagination"
-        @current-change="handlePageChange"
-        :current-page="page"
-        :page-size="pageSize"
-        layout="total, prev, pager, next"
-        :total="total">
+      <el-pagination class="pagination" @current-change="handlePageChange" :current-page="page" :page-size="pageSize" layout="total, prev, pager, next" :total="total">
       </el-pagination>
     </el-card>
 
     <!-- 新增/编辑抽屉 -->
-    <el-drawer
-      :title="drawerTitle"
-      :visible.sync="drawerVisible"
-      size="600px"
-      :before-close="handleDrawerClose">
+    <el-drawer :title="drawerTitle" :visible.sync="drawerVisible" size="600px" :before-close="handleDrawerClose">
       <div class="drawer-content">
         <el-tabs v-model="activeTab">
           <!-- 基础信息 -->

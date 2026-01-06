@@ -151,93 +151,95 @@ export default {
         })
     },
     loadMenuTree() {
-      getPermissionsTree().then((res) => {
-        if (res.code === 200) {
-          this.menuTree = res.data || []
-        } else {
-          this.$message.error(res.message || '加载权限树失败')
-        }
-      }).catch((err) => {
-        console.error(err)
-        // 如果API调用失败，使用默认数据
-        this.menuTree = [
-        {
-          id: 1,
-          name: '平台接入',
-          icon: 'el-icon-connection',
-          children: [
-            { id: 11, name: '平台列表', type: 'menu' },
-            { id: 12, name: '新增平台', type: 'button' },
-            { id: 13, name: '编辑平台', type: 'button' },
-            { id: 14, name: '删除平台', type: 'button' }
+      getPermissionsTree()
+        .then((res) => {
+          if (res.code === 200) {
+            this.menuTree = res.data || []
+          } else {
+            this.$message.error(res.message || '加载权限树失败')
+          }
+        })
+        .catch((err) => {
+          console.error(err)
+          // 如果API调用失败，使用默认数据
+          this.menuTree = [
+            {
+              id: 1,
+              name: '平台接入',
+              icon: 'el-icon-connection',
+              children: [
+                { id: 11, name: '平台列表', type: 'menu' },
+                { id: 12, name: '新增平台', type: 'button' },
+                { id: 13, name: '编辑平台', type: 'button' },
+                { id: 14, name: '删除平台', type: 'button' }
+              ]
+            },
+            {
+              id: 2,
+              name: 'API仓库',
+              icon: 'el-icon-folder-opened',
+              children: [
+                { id: 21, name: 'API列表', type: 'menu' },
+                { id: 22, name: 'API详情', type: 'menu' },
+                { id: 23, name: '新增API', type: 'button' },
+                { id: 24, name: '编辑API', type: 'button' },
+                { id: 25, name: '删除API', type: 'button' },
+                { id: 26, name: '测试API', type: 'button' }
+              ]
+            },
+            {
+              id: 3,
+              name: '服务编排',
+              icon: 'el-icon-share',
+              children: [
+                { id: 31, name: '聚合API', type: 'menu' },
+                { id: 32, name: '编排设计', type: 'menu' },
+                { id: 33, name: '新增聚合', type: 'button' },
+                { id: 34, name: '发布聚合', type: 'button' }
+              ]
+            },
+            {
+              id: 4,
+              name: '治理中心',
+              icon: 'el-icon-setting',
+              children: [
+                { id: 41, name: '限流策略', type: 'menu' },
+                { id: 42, name: '黑白名单', type: 'menu' },
+                { id: 43, name: '缓存策略', type: 'menu' }
+              ]
+            },
+            {
+              id: 5,
+              name: '客户管理',
+              icon: 'el-icon-user-solid',
+              children: [
+                { id: 51, name: '应用列表', type: 'menu' },
+                { id: 52, name: '应用详情', type: 'menu' },
+                { id: 53, name: '创建应用', type: 'button' },
+                { id: 54, name: '管理凭证', type: 'button' }
+              ]
+            },
+            {
+              id: 6,
+              name: '运维监控',
+              icon: 'el-icon-data-line',
+              children: [
+                { id: 61, name: '调用日志', type: 'menu' },
+                { id: 62, name: '告警管理', type: 'menu' }
+              ]
+            },
+            {
+              id: 7,
+              name: '系统管理',
+              icon: 'el-icon-s-tools',
+              children: [
+                { id: 71, name: '用户管理', type: 'menu' },
+                { id: 72, name: '角色管理', type: 'menu' },
+                { id: 73, name: '操作日志', type: 'menu' }
+              ]
+            }
           ]
-        },
-        {
-          id: 2,
-          name: 'API仓库',
-          icon: 'el-icon-folder-opened',
-          children: [
-            { id: 21, name: 'API列表', type: 'menu' },
-            { id: 22, name: 'API详情', type: 'menu' },
-            { id: 23, name: '新增API', type: 'button' },
-            { id: 24, name: '编辑API', type: 'button' },
-            { id: 25, name: '删除API', type: 'button' },
-            { id: 26, name: '测试API', type: 'button' }
-          ]
-        },
-        {
-          id: 3,
-          name: '服务编排',
-          icon: 'el-icon-share',
-          children: [
-            { id: 31, name: '聚合API', type: 'menu' },
-            { id: 32, name: '编排设计', type: 'menu' },
-            { id: 33, name: '新增聚合', type: 'button' },
-            { id: 34, name: '发布聚合', type: 'button' }
-          ]
-        },
-        {
-          id: 4,
-          name: '治理中心',
-          icon: 'el-icon-setting',
-          children: [
-            { id: 41, name: '限流策略', type: 'menu' },
-            { id: 42, name: '黑白名单', type: 'menu' },
-            { id: 43, name: '缓存策略', type: 'menu' }
-          ]
-        },
-        {
-          id: 5,
-          name: '客户管理',
-          icon: 'el-icon-user-solid',
-          children: [
-            { id: 51, name: '应用列表', type: 'menu' },
-            { id: 52, name: '应用详情', type: 'menu' },
-            { id: 53, name: '创建应用', type: 'button' },
-            { id: 54, name: '管理凭证', type: 'button' }
-          ]
-        },
-        {
-          id: 6,
-          name: '运维监控',
-          icon: 'el-icon-data-line',
-          children: [
-            { id: 61, name: '调用日志', type: 'menu' },
-            { id: 62, name: '告警管理', type: 'menu' }
-          ]
-        },
-        {
-          id: 7,
-          name: '系统管理',
-          icon: 'el-icon-s-tools',
-          children: [
-            { id: 71, name: '用户管理', type: 'menu' },
-            { id: 72, name: '角色管理', type: 'menu' },
-            { id: 73, name: '操作日志', type: 'menu' }
-          ]
-        }
-        ]
-      })
+        })
     },
     formatTime(time) {
       return time ? new Date(time).toLocaleDateString() : '-'
@@ -245,19 +247,21 @@ export default {
     selectRole(role) {
       this.selectedRole = role
       // 加载该角色的权限
-      getPermissionsByRoleId(role.id).then((res) => {
-        if (res.code === 200) {
-          // 只选中叶子节点，避免父节点自动被选中导致的问题
-          const allIds = res.data.permissionIds || []
-          this.checkedKeys = this.getLeafKeys(allIds)
-          this.checkAll = allIds.length === this.getAllMenuIds().length
-        } else {
-          this.$message.error(res.message || '加载权限失败')
-        }
-      }).catch((err) => {
-        console.error(err)
-        this.$message.error('加载角色权限失败')
-      })
+      getPermissionsByRoleId(role.id)
+        .then((res) => {
+          if (res.code === 200) {
+            // 只选中叶子节点，避免父节点自动被选中导致的问题
+            const allIds = res.data.permissionIds || []
+            this.checkedKeys = this.getLeafKeys(allIds)
+            this.checkAll = allIds.length === this.getAllMenuIds().length
+          } else {
+            this.$message.error(res.message || '加载权限失败')
+          }
+        })
+        .catch((err) => {
+          console.error(err)
+          this.$message.error('加载角色权限失败')
+        })
       this.$nextTick(() => {
         this.$refs.permissionTree && this.$refs.permissionTree.setCheckedKeys(this.checkedKeys)
       })
@@ -304,21 +308,23 @@ export default {
     },
     savePermissions() {
       if (!this.selectedRole) return
-      
+
       const checkedNodes = this.$refs.permissionTree.getCheckedNodes()
       const halfCheckedNodes = this.$refs.permissionTree.getHalfCheckedNodes()
-      const permissionIds = [...checkedNodes, ...halfCheckedNodes].map(node => node.id)
-      
-      saveRolePermissions(this.selectedRole.id, permissionIds).then((res) => {
-        if (res.code === 200) {
-          this.$message.success('权限保存成功')
-        } else {
-          this.$message.error(res.message || '保存失败')
-        }
-      }).catch((err) => {
-        console.error(err)
-        this.$message.error('保存权限失败')
-      })
+      const permissionIds = [...checkedNodes, ...halfCheckedNodes].map((node) => node.id)
+
+      saveRolePermissions(this.selectedRole.id, permissionIds)
+        .then((res) => {
+          if (res.code === 200) {
+            this.$message.success('权限保存成功')
+          } else {
+            this.$message.error(res.message || '保存失败')
+          }
+        })
+        .catch((err) => {
+          console.error(err)
+          this.$message.error('保存权限失败')
+        })
     },
     showDialog(role) {
       if (role) {

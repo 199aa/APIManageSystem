@@ -86,29 +86,68 @@
     </el-card>
 
     <!-- 接口调试抽屉 -->
-    <el-drawer title="接口调试" :visible.sync="testDrawerVisible" size="600px" direction="rtl">
+    <el-drawer title="接口调试" :visible.sync="testDrawerVisible" size="700px" direction="rtl">
       <div class="test-panel" v-if="currentApi">
         <div class="test-header">
-          <el-tag :type="getMethodType(currentApi.method)" effect="dark">{{ currentApi.method }}</el-tag>
-          <span class="test-path">{{ currentApi.path }}</span>
+          <el-tag :type="getMethodType(currentApi.method)" effect="dark" size="medium">{{ currentApi.method }}</el-tag>
+          <div class="test-url">
+            <el-input v-model="testUrl" placeholder="请输入完整的API地址" size="small">
+              <template slot="prepend">URL</template>
+            </el-input>
+          </div>
         </div>
+
+        <!-- URL提示 -->
+        <el-alert v-if="!testUrl.startsWith('http')" title="请输入完整的URL地址（包含 http:// 或 https://）" type="warning" :closable="false" style="margin: 10px 0"></el-alert>
 
         <!-- 请求参数 -->
         <div class="test-section">
           <h4>请求参数</h4>
           <el-tabs v-model="testActiveTab">
+            <!-- Path参数 -->
+            <el-tab-pane name="path">
+              <span slot="label">
+                Path参数
+                <el-badge v-if="testParams.path && testParams.path.length > 0" :value="testParams.path.length" class="param-badge"></el-badge>
+              </span>
+              <div v-if="!testParams.path || testParams.path.length === 0" style="color: #999; padding: 20px; text-align: center;">
+                在URL中使用 {参数名} 格式来定义路径参数，例如: /api/users/{id}
+              </div>
+              <div v-for="(param, index) in testParams.path" :key="'p'+index" class="param-row">
+                <el-input v-model="param.key" placeholder="参数名" size="small" style="width: 25%" disabled></el-input>
+                <el-select v-model="param.type" placeholder="类型" size="small" style="width: 20%">
+                  <el-option label="String" value="string"></el-option>
+                  <el-option label="Integer" value="integer"></el-option>
+                  <el-option label="Long" value="long"></el-option>
+                  <el-option label="Double" value="double"></el-option>
+                  <el-option label="Boolean" value="boolean"></el-option>
+                </el-select>
+                <el-input v-model="param.value" placeholder="值" size="small" style="width: 45%">
+                  <template slot="append">{{ getTypeHint(param.type) }}</template>
+                </el-input>
+                <el-button type="text" icon="el-icon-refresh" @click="validateParamType(param)" title="验证类型"></el-button>
+              </div>
+            </el-tab-pane>
+
             <el-tab-pane label="Query参数" name="query">
               <div v-for="(param, index) in testParams.query" :key="'q'+index" class="param-row">
-                <el-input v-model="param.key" placeholder="参数名" size="small" style="width: 40%"></el-input>
-                <el-input v-model="param.value" placeholder="值" size="small" style="width: 50%"></el-input>
+                <el-input v-model="param.key" placeholder="参数名" size="small" style="width: 25%"></el-input>
+                <el-select v-model="param.type" placeholder="类型" size="small" style="width: 20%">
+                  <el-option label="String" value="string"></el-option>
+                  <el-option label="Integer" value="integer"></el-option>
+                  <el-option label="Long" value="long"></el-option>
+                  <el-option label="Double" value="double"></el-option>
+                  <el-option label="Boolean" value="boolean"></el-option>
+                </el-select>
+                <el-input v-model="param.value" placeholder="值" size="small" style="width: 40%"></el-input>
                 <el-button type="text" icon="el-icon-delete" @click="removeParam('query', index)"></el-button>
               </div>
               <el-button type="text" icon="el-icon-plus" @click="addParam('query')">添加参数</el-button>
             </el-tab-pane>
             <el-tab-pane label="Header" name="header">
               <div v-for="(param, index) in testParams.header" :key="'h'+index" class="param-row">
-                <el-input v-model="param.key" placeholder="Header名" size="small" style="width: 40%"></el-input>
-                <el-input v-model="param.value" placeholder="值" size="small" style="width: 50%"></el-input>
+                <el-input v-model="param.key" placeholder="Header名" size="small" style="width: 30%"></el-input>
+                <el-input v-model="param.value" placeholder="值" size="small" style="width: 60%"></el-input>
                 <el-button type="text" icon="el-icon-delete" @click="removeParam('header', index)"></el-button>
               </div>
               <el-button type="text" icon="el-icon-plus" @click="addParam('header')">添加参数</el-button>
@@ -167,9 +206,11 @@ export default {
       },
       testDrawerVisible: false,
       currentApi: null,
-      testActiveTab: 'query',
+      testUrl: '', // 添加测试URL字段
+      testActiveTab: 'path',
       testParams: {
-        query: [{ key: '', value: '' }],
+        path: [], // 路径参数
+        query: [{ key: '', value: '', type: 'string' }],
         header: [{ key: '', value: '' }],
         body: ''
       },
@@ -179,6 +220,12 @@ export default {
   created() {
     this.loadPlatforms()
     this.loadData()
+  },
+  watch: {
+    // 监听URL变化，自动提取路径参数
+    testUrl(newUrl) {
+      this.extractPathParams(newUrl)
+    }
   },
   methods: {
     async loadPlatforms() {
@@ -248,8 +295,22 @@ export default {
     },
     handleTest(row) {
       this.currentApi = row
+      // 设置测试URL，如果path不是完整URL，则补充默认前缀
+      let url = row.path
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        // 如果是 8083/api/users 格式，转换为 http://localhost:8083/api/users
+        if (url.match(/^\d+\//)) {
+          url = 'http://localhost:' + url
+        } else if (url.startsWith('/')) {
+          url = 'http://localhost' + url
+        } else {
+          url = 'http://localhost/' + url
+        }
+      }
+      this.testUrl = url
       this.testParams = {
-        query: [{ key: '', value: '' }],
+        path: [], // 添加path数组初始化
+        query: [{ key: '', value: '', type: 'string' }],
         header: [{ key: '', value: '' }],
         body: ''
       }
@@ -289,16 +350,145 @@ export default {
       this.loadData()
     },
     addParam(type) {
-      this.testParams[type].push({ key: '', value: '' })
+      const newParam = { key: '', value: '' }
+      if (type === 'query') {
+        newParam.type = 'string'
+      }
+      this.testParams[type].push(newParam)
     },
     removeParam(type, index) {
       this.testParams[type].splice(index, 1)
     },
+    // 提取URL中的路径参数
+    extractPathParams(url) {
+      if (!url) return
+
+      // 匹配 {参数名} 格式
+      const regex = /\{([^}]+)\}/g
+      const matches = []
+      let match
+
+      while ((match = regex.exec(url)) !== null) {
+        matches.push(match[1])
+      }
+
+      // 保留已存在参数的值和类型
+      const existingParams = {}
+      this.testParams.path.forEach((param) => {
+        existingParams[param.key] = { value: param.value, type: param.type }
+      })
+
+      // 更新路径参数列表
+      this.testParams.path = matches.map((key) => {
+        return {
+          key,
+          value: existingParams[key]?.value || '',
+          type: existingParams[key]?.type || 'string'
+        }
+      })
+
+      // 如果有路径参数，自动切换到path标签页
+      if (matches.length > 0 && this.testActiveTab === 'query') {
+        this.testActiveTab = 'path'
+      }
+    },
+    // 获取类型提示
+    getTypeHint(type) {
+      const hints = {
+        string: '文本',
+        integer: '整数',
+        long: '长整数',
+        double: '小数',
+        boolean: 'true/false'
+      }
+      return hints[type] || ''
+    },
+    // 验证参数类型
+    validateParamType(param) {
+      if (!param.value) {
+        this.$message.warning(`请输入 ${param.key} 的值`)
+        return false
+      }
+
+      const value = param.value
+      let isValid = true
+      let errorMsg = ''
+
+      switch (param.type) {
+        case 'integer':
+          isValid = /^-?\d+$/.test(value) && Number.isInteger(Number(value))
+          errorMsg = '必须是整数'
+          break
+        case 'long':
+          isValid = /^-?\d+$/.test(value)
+          errorMsg = '必须是长整数'
+          break
+        case 'double':
+          isValid = /^-?\d+(\.\d+)?$/.test(value) && !isNaN(parseFloat(value))
+          errorMsg = '必须是数字'
+          break
+        case 'boolean':
+          isValid = value === 'true' || value === 'false'
+          errorMsg = '必须是 true 或 false'
+          break
+        case 'string':
+          isValid = true
+          break
+      }
+
+      if (isValid) {
+        this.$message.success(`${param.key} 类型验证通过`)
+      } else {
+        this.$message.error(`${param.key} 类型错误：${errorMsg}`)
+      }
+
+      return isValid
+    },
+    // 验证所有参数类型
+    validateAllParams() {
+      // 验证路径参数
+      for (const param of this.testParams.path) {
+        if (!param.value) {
+          this.$message.error(`路径参数 ${param.key} 不能为空`)
+          this.testActiveTab = 'path'
+          return false
+        }
+        if (!this.validateParamType(param)) {
+          this.testActiveTab = 'path'
+          return false
+        }
+      }
+
+      // 验证Query参数
+      for (const param of this.testParams.query) {
+        if (param.key && param.value && param.type) {
+          if (!this.validateParamType(param)) {
+            this.testActiveTab = 'query'
+            return false
+          }
+        }
+      }
+
+      return true
+    },
     async sendRequest() {
       this.testing = true
       try {
+        // 先验证参数类型
+        if (!this.validateAllParams()) {
+          this.testing = false
+          return
+        }
+
+        // 替换URL中的路径参数
+        let finalUrl = this.testUrl
+        this.testParams.path.forEach((param) => {
+          finalUrl = finalUrl.replace(`{${param.key}}`, param.value)
+        })
+
         const params = {
           apiId: this.currentApi.id,
+          url: finalUrl, // 传递处理后的URL
           queryParams: this.testParams.query.filter((p) => p.key),
           headers: this.testParams.header.filter((p) => p.key),
           body: this.testParams.body
@@ -455,6 +645,18 @@ export default {
     padding: 15px;
     background: rgba(102, 126, 234, 0.1);
     border-radius: 8px;
+    flex-direction: column;
+
+    .test-url {
+      width: 100%;
+
+      ::v-deep .el-input-group__prepend {
+        background-color: #667eea;
+        color: white;
+        border: none;
+        font-weight: bold;
+      }
+    }
 
     .test-path {
       font-family: monospace;
@@ -484,6 +686,30 @@ export default {
     gap: 10px;
     margin-bottom: 10px;
     align-items: center;
+
+    .el-input__inner {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: #fff;
+
+      &:focus {
+        border-color: #667eea;
+      }
+    }
+
+    .el-input-group__append {
+      background: rgba(102, 126, 234, 0.2);
+      border-color: rgba(102, 126, 234, 0.3);
+      color: #8b8ba7;
+      font-size: 12px;
+    }
+  }
+
+  .param-badge {
+    ::v-deep .el-badge__content {
+      background-color: #667eea;
+      border: none;
+    }
   }
 
   .test-actions {

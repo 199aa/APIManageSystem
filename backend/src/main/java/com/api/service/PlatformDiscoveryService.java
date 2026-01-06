@@ -36,6 +36,7 @@ public class PlatformDiscoveryService {
 
     /**
      * 从Swagger文档同步API接口
+     * 
      * @param platform 平台信息
      * @return 同步结果 {success: true/false, count: 10, message: ""}
      */
@@ -87,11 +88,10 @@ public class PlatformDiscoveryService {
             HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<String> response = restTemplate.exchange(
-                swaggerUrl,
-                HttpMethod.GET,
-                entity,
-                String.class
-            );
+                    swaggerUrl,
+                    HttpMethod.GET,
+                    entity,
+                    String.class);
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
@@ -240,12 +240,12 @@ public class PlatformDiscoveryService {
      */
     private boolean isValidHttpMethod(String method) {
         return "get".equalsIgnoreCase(method) ||
-               "post".equalsIgnoreCase(method) ||
-               "put".equalsIgnoreCase(method) ||
-               "delete".equalsIgnoreCase(method) ||
-               "patch".equalsIgnoreCase(method) ||
-               "head".equalsIgnoreCase(method) ||
-               "options".equalsIgnoreCase(method);
+                "post".equalsIgnoreCase(method) ||
+                "put".equalsIgnoreCase(method) ||
+                "delete".equalsIgnoreCase(method) ||
+                "patch".equalsIgnoreCase(method) ||
+                "head".equalsIgnoreCase(method) ||
+                "options".equalsIgnoreCase(method);
     }
 
     /**

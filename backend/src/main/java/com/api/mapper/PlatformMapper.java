@@ -29,13 +29,13 @@ public interface PlatformMapper {
 
   // 统计各平台API数量
   List<Map<String, Object>> countApiByPlatform();
-  
+
   // 更新健康状态
   int updateHealthStatus(@Param("id") Long id, @Param("healthStatus") String healthStatus);
-  
+
   // 查询所有启用的平台
   List<Platform> selectAllEnabled();
-  
+
   // 统计异常平台数量
   int countOfflinePlatforms();
 }

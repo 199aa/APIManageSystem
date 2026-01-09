@@ -89,6 +89,7 @@
             <if test="status != null">status = #{status},</if>
             <if test="requestParams != null">request_params = #{requestParams},</if>
             <if test="responseExample != null">response_example = #{responseExample},</if>
+            <if test="aggregateConfig != null">aggregate_config = #{aggregateConfig},</if>
             update_time = NOW()
         </set>
         WHERE id = #{id}

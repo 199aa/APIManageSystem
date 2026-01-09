@@ -55,13 +55,13 @@
           <!-- 流程节点 -->
           <template v-if="executeMode === 'serial'">
             <template v-for="(node, index) in flowNodes">
-              <div :key="node.id" class="flow-node process-node" :class="{ active: activeNodeId === node.id }">
+              <div :key="node.nodeId" class="flow-node process-node" :class="{ active: activeNodeId === node.nodeId }">
                 <div class="node-icon"><i class="el-icon-connection"></i></div>
                 <div class="node-info">
-                  <div class="node-title">{{ node.name }}</div>
+                  <div class="node-title">{{ node.apiName }}</div>
                   <div class="node-desc">
                     <el-tag :type="getMethodType(node.method)" size="mini">{{ node.method }}</el-tag>
-                    {{ node.path }}
+                    {{ node.apiPath }}
                   </div>
                 </div>
                 <div class="node-actions">
@@ -71,7 +71,7 @@
                   </el-button>
                 </div>
               </div>
-              <div :key="'arrow-'+node.id" class="flow-arrow" v-if="index < flowNodes.length - 1">
+              <div :key="'arrow-'+node.nodeId" class="flow-arrow" v-if="index < flowNodes.length - 1">
                 <i class="el-icon-arrow-down"></i>
               </div>
             </template>
@@ -80,18 +80,22 @@
           <!-- 并行模式 -->
           <template v-else>
             <div class="parallel-container" v-if="flowNodes.length">
-              <div class="parallel-branch" v-for="(node, index) in flowNodes" :key="node.id">
-                <div class="flow-node process-node">
+              <div class="parallel-branch" v-for="(node, index) in flowNodes" :key="node.nodeId">
+                <div class="flow-node process-node" :class="{ active: activeNodeId === node.nodeId }">
                   <div class="node-icon"><i class="el-icon-connection"></i></div>
                   <div class="node-info">
-                    <div class="node-title">{{ node.name }}</div>
+                    <div class="node-title">{{ node.apiName }}</div>
                     <div class="node-desc">
                       <el-tag :type="getMethodType(node.method)" size="mini">{{ node.method }}</el-tag>
+                      {{ node.apiPath }}
                     </div>
                   </div>
-                  <el-button type="text" size="mini" class="danger-btn" @click="removeNode(index)">
-                    <i class="el-icon-delete"></i>
-                  </el-button>
+                  <div class="node-actions">
+                    <el-button type="text" size="mini" @click="editNode(node)">配置</el-button>
+                    <el-button type="text" size="mini" class="danger-btn" @click="removeNode(index)">
+                      <i class="el-icon-delete"></i>
+                    </el-button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -135,7 +139,7 @@
         <div class="config-content" v-if="activeNode">
           <el-form label-width="80px" size="small">
             <el-form-item label="节点名称">
-              <el-input v-model="activeNode.name"></el-input>
+              <el-input v-model="activeNode.apiName"></el-input>
             </el-form-item>
             <el-form-item label="超时时间">
               <el-input-number v-model="activeNode.timeout" :min="1000" :max="60000" :step="1000"></el-input-number>
@@ -264,6 +268,13 @@ export default {
       this.isNew = false
       this.aggregateId = parseInt(id)
       this.loadDesign(this.aggregateId)
+    } else {
+      // 新建时初始化一个空的aggregateInfo
+      this.aggregateInfo = {
+        name: '',
+        path: '',
+        description: ''
+      }
     }
     this.loadApis()
   },
@@ -471,8 +482,8 @@ export default {
     },
 
     async handleSave() {
-      if (!this.aggregateInfo && !this.isNew) {
-        this.$message.error('聚合接口信息缺失')
+      if (!this.aggregateInfo) {
+        this.$message.error('聚合接口信息缺失，请刷新页面重试')
         return
       }
 
@@ -493,11 +504,13 @@ export default {
 
         const data = {
           id: this.aggregateId,
-          name: this.aggregateInfo?.name,
-          path: this.aggregateInfo?.path,
-          description: this.aggregateInfo?.description,
+          name: this.aggregateInfo.name,
+          path: this.aggregateInfo.path,
+          description: this.aggregateInfo.description,
           aggregateConfig: JSON.stringify(config)
         }
+
+        console.log('保存数据：', data)
 
         const res = await saveAggregate(data)
         if (res.code === 200) {
@@ -512,7 +525,7 @@ export default {
           this.$message.error(res.message || '保存失败')
         }
       } catch (e) {
-        console.error(e)
+        console.error('保存失败：', e)
         this.$message.error('保存失败: ' + e.message)
       } finally {
         this.saving = false

@@ -295,18 +295,48 @@ export default {
     },
     handleTest(row) {
       this.currentApi = row
-      // 设置测试URL，如果path不是完整URL，则补充默认前缀
+      // 智能构建测试URL
       let url = row.path
+
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        // 如果是 8083/api/users 格式，转换为 http://localhost:8083/api/users
-        if (url.match(/^\d+\//)) {
-          url = 'http://localhost:' + url
-        } else if (url.startsWith('/')) {
-          url = 'http://localhost' + url
+        // 判断是否为聚合接口
+        if (row.isAggregate === 1 || url.startsWith('/aggregate')) {
+          // 聚合接口使用后端地址 8081
+          if (url.startsWith('/')) {
+            url = 'http://localhost:8081' + url
+          } else {
+            url = 'http://localhost:8081/' + url
+          }
         } else {
-          url = 'http://localhost/' + url
+          // 普通接口：尝试从平台获取baseUrl
+          let baseUrl = ''
+          if (row.platformId && this.platforms.length > 0) {
+            const platform = this.platforms.find((p) => p.id === row.platformId)
+            if (platform && platform.baseUrl) {
+              baseUrl = platform.baseUrl.replace(/\/$/, '') // 去掉末尾斜杠
+            }
+          }
+
+          // 如果有平台baseUrl，使用平台地址
+          if (baseUrl) {
+            if (url.startsWith('/')) {
+              url = baseUrl + url
+            } else {
+              url = baseUrl + '/' + url
+            }
+          } else {
+            // 没有平台信息，使用默认的外部测试端口8083
+            if (url.match(/^\d+\//)) {
+              url = 'http://localhost:' + url
+            } else if (url.startsWith('/')) {
+              url = 'http://localhost:8083' + url
+            } else {
+              url = 'http://localhost:8083/' + url
+            }
+          }
         }
       }
+
       this.testUrl = url
       this.testParams = {
         path: [], // 添加path数组初始化

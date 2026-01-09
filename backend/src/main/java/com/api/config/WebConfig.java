@@ -25,8 +25,9 @@ public class WebConfig implements WebMvcConfigurer {
             "/user/login",
             "/user/register",
             "/dashboard/**",
+            "/aggregate/**",
             "/error");
-    
+
     // 权限拦截器（在JWT之后执行）
     registry.addInterceptor(permissionInterceptor)
         .addPathPatterns("/**")
@@ -34,6 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
             "/user/login",
             "/user/register",
             "/dashboard/**",
+            "/aggregate/**",
             "/error");
   }
 }

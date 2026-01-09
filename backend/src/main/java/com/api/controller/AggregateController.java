@@ -221,13 +221,35 @@ public class AggregateController {
             @RequestBody(required = false) Map<String, Object> params,
             javax.servlet.http.HttpServletRequest request) {
         try {
-            // 提取路径
-            String path = request.getRequestURI().replace("/aggregate", "");
+            // 提取路径 - 尝试多种格式匹配
+            String requestPath = request.getRequestURI();
 
-            // 查找聚合接口
-            ApiInfo apiInfo = apiInfoMapper.selectByPath(path);
-            if (apiInfo == null || apiInfo.getIsAggregate() != 1 || apiInfo.getStatus() != 1) {
-                return Result.error("聚合接口不存在或未发布");
+            // 移除可能的上下文路径前缀
+            String contextPath = request.getContextPath();
+            if (contextPath != null && !contextPath.isEmpty()) {
+                requestPath = requestPath.substring(contextPath.length());
+            }
+
+            // 尝试完整路径匹配
+            ApiInfo apiInfo = apiInfoMapper.selectByPath(requestPath);
+
+            // 如果没找到，尝试去掉 /aggregate 前缀
+            if (apiInfo == null) {
+                String shortPath = requestPath.replace("/aggregate", "");
+                apiInfo = apiInfoMapper.selectByPath(shortPath);
+            }
+
+            // 如果还没找到，尝试加上 /aggregate 前缀
+            if (apiInfo == null && !requestPath.startsWith("/aggregate")) {
+                apiInfo = apiInfoMapper.selectByPath("/aggregate" + requestPath);
+            }
+
+            if (apiInfo == null || apiInfo.getIsAggregate() != 1) {
+                return Result.error("聚合接口不存在: " + requestPath);
+            }
+
+            if (apiInfo.getStatus() != 1) {
+                return Result.error("聚合接口未发布，请先发布后再调用");
             }
 
             // 执行

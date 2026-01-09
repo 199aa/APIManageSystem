@@ -34,8 +34,9 @@ public class AggregateExecutionService {
 
     /**
      * 执行聚合接口
+     * 
      * @param aggregateApi 聚合接口信息
-     * @param inputParams 输入参数
+     * @param inputParams  输入参数
      * @return 执行结果
      */
     public Map<String, Object> execute(ApiInfo aggregateApi, Map<String, Object> inputParams) throws Exception {
@@ -72,21 +73,24 @@ public class AggregateExecutionService {
     /**
      * 串行执行
      */
-    private Map<String, Object> executeSerial(JsonNode nodesConfig, Map<String, Object> context, int timeout) throws Exception {
+    private Map<String, Object> executeSerial(JsonNode nodesConfig, Map<String, Object> context, int timeout)
+            throws Exception {
         Map<String, Object> results = (Map<String, Object>) context.get("results");
-        
+
         for (JsonNode nodeConfig : nodesConfig) {
             try {
                 Map<String, Object> nodeResult = executeNode(nodeConfig, context);
-                String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText() : "result";
+                String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText()
+                        : "result";
                 results.put(responsePath, nodeResult);
-                
+
             } catch (Exception e) {
                 String onError = nodeConfig.has("onError") ? nodeConfig.get("onError").asText() : "abort";
                 if ("abort".equals(onError)) {
                     throw new RuntimeException("节点执行失败: " + e.getMessage(), e);
                 } else if ("continue".equals(onError)) {
-                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText() : "result";
+                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText()
+                            : "result";
                     Map<String, Object> errorResult = new HashMap<>();
                     errorResult.put("error", true);
                     errorResult.put("message", e.getMessage());
@@ -101,7 +105,8 @@ public class AggregateExecutionService {
     /**
      * 并行执行
      */
-    private Map<String, Object> executeParallel(JsonNode nodesConfig, Map<String, Object> context, int timeout) throws Exception {
+    private Map<String, Object> executeParallel(JsonNode nodesConfig, Map<String, Object> context, int timeout)
+            throws Exception {
         Map<String, Object> results = (Map<String, Object>) context.get("results");
         ExecutorService executor = Executors.newCachedThreadPool();
         List<Future<NodeExecutionResult>> futures = new ArrayList<>();
@@ -111,10 +116,12 @@ public class AggregateExecutionService {
             Future<NodeExecutionResult> future = executor.submit(() -> {
                 try {
                     Map<String, Object> nodeResult = executeNode(nodeConfig, context);
-                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText() : "result";
+                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText()
+                            : "result";
                     return new NodeExecutionResult(responsePath, nodeResult, null);
                 } catch (Exception e) {
-                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText() : "result";
+                    String responsePath = nodeConfig.has("responsePath") ? nodeConfig.get("responsePath").asText()
+                            : "result";
                     return new NodeExecutionResult(responsePath, null, e);
                 }
             });
@@ -150,14 +157,32 @@ public class AggregateExecutionService {
         Long apiId = nodeConfig.get("apiId").asLong();
         int timeout = nodeConfig.has("timeout") ? nodeConfig.get("timeout").asInt() : 5000;
 
+        // 获取节点配置的apiPath（可能包含占位符）
+        String apiPath = nodeConfig.has("apiPath") ? nodeConfig.get("apiPath").asText() : null;
+
         // 查询API信息
         ApiInfo apiInfo = apiInfoMapper.selectById(apiId);
         if (apiInfo == null) {
             throw new RuntimeException("API不存在: " + apiId);
         }
 
-        // 参数映射
+        // 如果节点配置了apiPath，使用节点的配置（可能包含动态参数）
+        if (apiPath != null && !apiPath.isEmpty()) {
+            apiInfo.setPath(apiPath);
+        }
+
+        // 参数映射 - 从paramMappings获取
         Map<String, Object> params = mapParameters(nodeConfig.get("paramMappings"), context);
+
+        // 合并输入参数用于占位符替换
+        Map<String, Object> inputParams = (Map<String, Object>) context.get("input");
+        if (inputParams != null) {
+            for (Map.Entry<String, Object> entry : inputParams.entrySet()) {
+                if (!params.containsKey(entry.getKey())) {
+                    params.put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
 
         // 调用API
         String url = buildUrl(apiInfo, params);
@@ -173,11 +198,10 @@ public class AggregateExecutionService {
         }
 
         ResponseEntity<String> response = restTemplate.exchange(
-            url,
-            HttpMethod.valueOf(apiInfo.getMethod().toUpperCase()),
-            entity,
-            String.class
-        );
+                url,
+                HttpMethod.valueOf(apiInfo.getMethod().toUpperCase()),
+                entity,
+                String.class);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("API调用失败: HTTP " + response.getStatusCode());
@@ -199,7 +223,7 @@ public class AggregateExecutionService {
         for (JsonNode mapping : mappings) {
             String source = mapping.get("source").asText();
             String target = mapping.get("target").asText();
-            
+
             Object value = getValueFromPath(context, source);
             if (value != null) {
                 params.put(target, value);
@@ -231,14 +255,36 @@ public class AggregateExecutionService {
      * 构建URL
      */
     private String buildUrl(ApiInfo apiInfo, Map<String, Object> params) {
-        // TODO: 需要从平台配置获取baseUrl
-        String baseUrl = "http://localhost:8081"; // 临时硬编码
         String path = apiInfo.getPath();
 
-        if ("GET".equalsIgnoreCase(apiInfo.getMethod()) && !params.isEmpty()) {
-            StringBuilder query = new StringBuilder("?");
-            params.forEach((k, v) -> query.append(k).append("=").append(v).append("&"));
-            path += query.substring(0, query.length() - 1);
+        // 处理以冒号开头的端口格式，如 :8083/api/v1/user
+        if (path.startsWith(":")) {
+            path = path.substring(1); // 去掉开头的冒号
+        }
+
+        // 替换路径中的占位符 {paramName}
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String placeholder = "{" + entry.getKey() + "}";
+            if (path.contains(placeholder)) {
+                path = path.replace(placeholder, String.valueOf(entry.getValue()));
+            }
+        }
+
+        // 如果path已经是完整URL，直接使用
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        }
+
+        // 否则需要从平台配置获取baseUrl
+        String baseUrl = "http://localhost:8083"; // 默认端口
+
+        // 如果path是 8083/api/v1/user 格式，提取端口
+        if (path.matches("^\\d+/.*")) {
+            String[] parts = path.split("/", 2);
+            baseUrl = "http://localhost:" + parts[0];
+            path = "/" + parts[1];
+        } else if (!path.startsWith("/")) {
+            path = "/" + path;
         }
 
         return baseUrl + path;

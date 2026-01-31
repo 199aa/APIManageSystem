@@ -526,10 +526,13 @@ export default {
         const startTime = Date.now()
         const res = await testApi(params)
         const endTime = Date.now()
+        // 使用实际调用API返回的状态码判断成功与否
+        const actualStatusCode = res.data?.statusCode || 500
+        const isSuccess = actualStatusCode >= 200 && actualStatusCode < 300
         this.testResponse = {
-          success: res.code === 200,
-          status: res.data?.statusCode || res.code,
-          statusText: res.data?.statusText || (res.code === 200 ? 'OK' : 'Error'),
+          success: isSuccess,
+          status: actualStatusCode,
+          statusText: res.data?.statusText || (isSuccess ? 'OK' : 'Error'),
           time: endTime - startTime,
           data: JSON.stringify(res.data?.response || res.data, null, 2)
         }

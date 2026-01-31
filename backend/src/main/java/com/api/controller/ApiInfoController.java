@@ -7,14 +7,18 @@ import com.api.mapper.ApiInfoMapper;
 import com.api.mapper.PlatformMapper;
 import com.api.mapper.ApiCallLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api-info")
@@ -31,6 +35,14 @@ public class ApiInfoController {
 
   @Autowired
   private RestTemplate restTemplate;
+
+  @Autowired
+  private RedisTemplate<String, Object> redisTemplate;
+
+  // Redis key 常量
+  private static final String REDIS_KEY_TOTAL_CALLS = "dashboard:total_calls";
+  private static final String REDIS_KEY_TODAY_CALLS = "dashboard:today_calls:";
+  private static final String REDIS_KEY_TODAY_SUCCESS = "dashboard:today_success:";
 
   /**
    * 获取API列表（分页）
@@ -246,7 +258,11 @@ public class ApiInfoController {
     log.setApiName(apiInfo.getName());
     log.setResponseTime((int) costTime);
     log.setStatusCode(statusCode);
-    log.setIsSuccess(statusCode >= 200 && statusCode < 300 ? 1 : 0);
+    boolean isSuccess = statusCode >= 200 && statusCode < 300;
+    log.setIsSuccess(isSuccess ? 1 : 0);
+
+    // 更新Redis计数器
+    updateRedisCounters(isSuccess);
 
     // 异步插入日志，不阻塞响应
     new Thread(() -> {
@@ -258,5 +274,33 @@ public class ApiInfoController {
     }).start();
 
     return Result.success(response);
+  }
+
+  /**
+   * 更新Redis计数器
+   */
+  private void updateRedisCounters(boolean success) {
+    try {
+      String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+      // 累计调用总数
+      redisTemplate.opsForValue().increment(REDIS_KEY_TOTAL_CALLS, 1);
+
+      // 今日调用数
+      String todayCallKey = REDIS_KEY_TODAY_CALLS + today;
+      redisTemplate.opsForValue().increment(todayCallKey, 1);
+      redisTemplate.expire(todayCallKey, 3, TimeUnit.DAYS);
+
+      // 今日成功调用数
+      if (success) {
+        String todaySuccessKey = REDIS_KEY_TODAY_SUCCESS + today;
+        redisTemplate.opsForValue().increment(todaySuccessKey, 1);
+        redisTemplate.expire(todaySuccessKey, 3, TimeUnit.DAYS);
+      }
+
+      System.out.println("[API测试] Redis计数器已更新, 成功: " + success);
+    } catch (Exception e) {
+      System.err.println("[API测试] 更新Redis计数器失败: " + e.getMessage());
+    }
   }
 }

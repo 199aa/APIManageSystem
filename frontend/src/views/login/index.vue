@@ -71,12 +71,7 @@
           </el-form-item>
           <el-form-item prop="roleId">
             <el-select v-model="registerForm.roleId" placeholder="请选择角色" style="width: 100%" prefix-icon="el-icon-s-custom">
-              <el-option
-                v-for="role in roleList"
-                :key="role.id"
-                :label="role.name"
-                :value="role.id"
-              ></el-option>
+              <el-option v-for="role in roleList" :key="role.id" :label="role.name" :value="role.id"></el-option>
             </el-select>
           </el-form-item>
           <el-button type="primary" class="submit-btn" @click="handleRegister" :loading="loading">
@@ -154,13 +149,15 @@ export default {
       }
     },
     loadRoleList() {
-      getRegisterRoles().then(res => {
-        if (res.code === 200) {
-          this.roleList = res.data
-        }
-      }).catch(err => {
-        console.error('获取角色列表失败', err)
-      })
+      getRegisterRoles()
+        .then((res) => {
+          if (res.code === 200) {
+            this.roleList = res.data
+          }
+        })
+        .catch((err) => {
+          console.error('获取角色列表失败', err)
+        })
     },
     resetForms() {
       this.loginForm = { username: '', password: '' }

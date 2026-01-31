@@ -47,8 +47,8 @@ public class UserController {
       // 获取用户权限
       List<Permission> permissions = permissionService.getPermissionsByRoleId(user.getRoleId());
       List<String> permissionCodes = permissions.stream()
-              .map(Permission::getCode)
-              .collect(Collectors.toList());
+          .map(Permission::getCode)
+          .collect(Collectors.toList());
 
       Map<String, Object> data = new HashMap<>();
       data.put("token", token);
@@ -71,8 +71,8 @@ public class UserController {
       List<String> excludedCodes = Arrays.asList("ROLE_SUPER_ADMIN", "ROLE_ADMIN");
       List<Role> allRoles = roleService.getAllRoles();
       List<Role> registerRoles = allRoles.stream()
-              .filter(role -> !excludedCodes.contains(role.getCode()) && role.getStatus() == 1)
-              .collect(Collectors.toList());
+          .filter(role -> !excludedCodes.contains(role.getCode()) && role.getStatus() == 1)
+          .collect(Collectors.toList());
       return Result.success(registerRoles);
     } catch (Exception e) {
       return Result.error(e.getMessage());

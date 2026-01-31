@@ -102,10 +102,18 @@ export default {
       try {
         const res = await getAggregateList()
         if (res.code === 200) {
-          this.apiOptions = res.data.map((item) => ({ id: item.id, name: item.name }))
+          // 处理分页返回的数据结构 { list: [], total: xx } 或直接返回数组
+          let list = []
+          if (Array.isArray(res.data)) {
+            list = res.data
+          } else if (res.data && Array.isArray(res.data.list)) {
+            list = res.data.list
+          }
+          this.apiOptions = list.map((item) => ({ id: item.id, name: item.name }))
         }
       } catch (error) {
         console.error('加载API列表失败:', error)
+        this.apiOptions = []
       }
     },
     getHitRateColor(rate) {

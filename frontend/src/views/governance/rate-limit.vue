@@ -157,6 +157,7 @@ import { getRateLimitList, saveRateLimit, deleteRateLimit, updateRateLimitStatus
 import { getBlacklist, saveBlacklist, saveWhitelist } from '@/api/governance'
 import { getCacheRuleList, saveCacheRule, deleteCacheRule, clearCache } from '@/api/governance'
 import { getAggregateList, getApiInfoList } from '@/api/api'
+import { getAllApps } from '@/api/customer'
 
 export default {
   name: 'RateLimit',
@@ -232,16 +233,31 @@ export default {
         if (type === 'api') {
           const res = await getApiInfoList()
           if (res.code === 200) {
-            this.targetOptions = res.data.map((item) => ({ id: item.id, name: item.name }))
+            // 处理分页返回的数据结构 { list: [], total: xx } 或直接返回数组
+            let list = []
+            if (Array.isArray(res.data)) {
+              list = res.data
+            } else if (res.data && Array.isArray(res.data.list)) {
+              list = res.data.list
+            }
+            this.targetOptions = list.map((item) => ({ id: item.id, name: item.name || item.path }))
           }
         } else if (type === 'app') {
-          this.targetOptions = [
-            { id: 1, name: '示例应用1' },
-            { id: 2, name: '示例应用2' }
-          ]
+          // 调用实际的应用列表API
+          const res = await getAllApps()
+          if (res.code === 200) {
+            let list = []
+            if (Array.isArray(res.data)) {
+              list = res.data
+            } else if (res.data && Array.isArray(res.data.list)) {
+              list = res.data.list
+            }
+            this.targetOptions = list.map((item) => ({ id: item.id, name: item.appName || item.name }))
+          }
         }
       } catch (error) {
         console.error('加载目标选项失败:', error)
+        this.targetOptions = []
       }
     },
     addRateLimit() {
@@ -250,6 +266,8 @@ export default {
       if (this.$refs.rateLimitForm) {
         this.$refs.rateLimitForm.resetFields()
       }
+      // 主动加载目标选项
+      this.loadTargetOptions('api')
       this.rateLimitDialogVisible = true
     },
     editRateLimit(row) {
@@ -368,14 +386,29 @@ export default {
         }
 
         // 加载聚合API列表
-        const apiRes = await getAggregateList()
-        if (apiRes.code === 200) {
-          this.aggregateApis = apiRes.data.map((item) => ({ id: item.id, name: item.name }))
-        }
+        await this.loadAggregateApis()
       } catch (error) {
         console.error('加载缓存规则失败:', error)
       } finally {
         this.loading = false
+      }
+    },
+    async loadAggregateApis() {
+      try {
+        const apiRes = await getAggregateList()
+        if (apiRes.code === 200) {
+          // 处理分页返回的数据结构 { list: [], total: xx } 或直接返回数组
+          let list = []
+          if (Array.isArray(apiRes.data)) {
+            list = apiRes.data
+          } else if (apiRes.data && Array.isArray(apiRes.data.list)) {
+            list = apiRes.data.list
+          }
+          this.aggregateApis = list.map((item) => ({ id: item.id, name: item.name }))
+        }
+      } catch (error) {
+        console.error('加载聚合API列表失败:', error)
+        this.aggregateApis = []
       }
     },
     addCacheRule() {
@@ -383,6 +416,10 @@ export default {
       this.cacheForm = { apiId: '', cacheKey: '', ttl: 300 }
       if (this.$refs.cacheForm) {
         this.$refs.cacheForm.resetFields()
+      }
+      // 确保聚合API列表已加载
+      if (this.aggregateApis.length === 0) {
+        this.loadAggregateApis()
       }
       this.cacheDialogVisible = true
     },

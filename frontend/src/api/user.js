@@ -25,3 +25,11 @@ export function register(data) {
     data
   })
 }
+
+// 获取可注册的角色列表
+export function getRegisterRoles() {
+  return request({
+    url: '/user/register/roles',
+    method: 'get'
+  })
+}

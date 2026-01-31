@@ -69,6 +69,16 @@
               </el-button> -->
             </el-input>
           </el-form-item>
+          <el-form-item prop="roleId">
+            <el-select v-model="registerForm.roleId" placeholder="请选择角色" style="width: 100%" prefix-icon="el-icon-s-custom">
+              <el-option
+                v-for="role in roleList"
+                :key="role.id"
+                :label="role.name"
+                :value="role.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
           <el-button type="primary" class="submit-btn" @click="handleRegister" :loading="loading">
             注册
           </el-button>
@@ -82,7 +92,7 @@
 </template>
 
 <script>
-import { login, register } from '@/api/user'
+import { login, register, getRegisterRoles } from '@/api/user'
 
 export default {
   name: 'Login',
@@ -97,8 +107,10 @@ export default {
         username: '',
         email: '',
         password: '',
-        phone: ''
+        phone: '',
+        roleId: null
       },
+      roleList: [],
       loginRules: {
         username: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
         password: [
@@ -119,7 +131,8 @@ export default {
           { required: true, message: '请输入密码', trigger: 'blur' },
           { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
         ],
-        phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }]
+        phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
+        roleId: [{ required: true, message: '请选择角色', trigger: 'change' }]
       },
       loading: false,
       codeCountdown: 0,
@@ -135,10 +148,23 @@ export default {
     toggleMode() {
       this.isRegister = !this.isRegister
       this.resetForms()
+      // 切换到注册模式时加载角色列表
+      if (this.isRegister) {
+        this.loadRoleList()
+      }
+    },
+    loadRoleList() {
+      getRegisterRoles().then(res => {
+        if (res.code === 200) {
+          this.roleList = res.data
+        }
+      }).catch(err => {
+        console.error('获取角色列表失败', err)
+      })
     },
     resetForms() {
       this.loginForm = { username: '', password: '' }
-      this.registerForm = { username: '', email: '', password: '', phone: '' }
+      this.registerForm = { username: '', email: '', password: '', phone: '', roleId: null }
       this.$nextTick(() => {
         this.$refs.loginForm && this.$refs.loginForm.clearValidate()
         this.$refs.registerForm && this.$refs.registerForm.clearValidate()
@@ -174,7 +200,8 @@ export default {
           const data = {
             username: this.registerForm.username,
             email: this.registerForm.email,
-            password: this.registerForm.password
+            password: this.registerForm.password,
+            roleId: this.registerForm.roleId
           }
           register(data)
             .then((res) => {

@@ -24,6 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
         .excludePathPatterns(
             "/user/login",
             "/user/register",
+            "/user/register/roles",
             "/dashboard/**",
             "/aggregate/**",
             "/error");
@@ -34,6 +35,7 @@ public class WebConfig implements WebMvcConfigurer {
         .excludePathPatterns(
             "/user/login",
             "/user/register",
+            "/user/register/roles",
             "/dashboard/**",
             "/aggregate/**",
             "/error");

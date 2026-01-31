@@ -3,12 +3,15 @@ package com.api.controller;
 import com.api.annotation.OperationLog;
 import com.api.common.Result;
 import com.api.model.Permission;
+import com.api.model.Role;
 import com.api.model.User;
 import com.api.service.PermissionService;
+import com.api.service.RoleService;
 import com.api.service.UserService;
 import com.api.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +27,9 @@ public class UserController {
 
   @Autowired
   private PermissionService permissionService;
+
+  @Autowired
+  private RoleService roleService;
 
   @Autowired
   private JwtUtil jwtUtil;
@@ -55,10 +61,39 @@ public class UserController {
     }
   }
 
+  /**
+   * 获取可注册的角色列表（排除超级管理员和管理员）
+   */
+  @GetMapping("/register/roles")
+  public Result<List<Role>> getRegisterRoles() {
+    try {
+      // 排除超级管理员和管理员角色
+      List<String> excludedCodes = Arrays.asList("ROLE_SUPER_ADMIN", "ROLE_ADMIN");
+      List<Role> allRoles = roleService.getAllRoles();
+      List<Role> registerRoles = allRoles.stream()
+              .filter(role -> !excludedCodes.contains(role.getCode()) && role.getStatus() == 1)
+              .collect(Collectors.toList());
+      return Result.success(registerRoles);
+    } catch (Exception e) {
+      return Result.error(e.getMessage());
+    }
+  }
+
   @PostMapping("/register")
   @OperationLog(type = "CREATE", module = "user", description = "用户注册")
   public Result<User> register(@RequestBody User user) {
     try {
+      // 验证角色ID是否是允许注册的角色
+      if (user.getRoleId() != null) {
+        Role role = roleService.getRoleById(user.getRoleId());
+        if (role == null) {
+          return Result.error("选择的角色不存在");
+        }
+        List<String> excludedCodes = Arrays.asList("ROLE_SUPER_ADMIN", "ROLE_ADMIN");
+        if (excludedCodes.contains(role.getCode())) {
+          return Result.error("不允许注册该角色");
+        }
+      }
       User newUser = userService.register(user);
       return Result.success(newUser);
     } catch (Exception e) {
